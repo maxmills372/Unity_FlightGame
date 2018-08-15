@@ -8,15 +8,17 @@ public class Controller : MonoBehaviour
     {
         AllAxis,
         PerAxis,
+		OnButtonPress,
         None
     }
 	enum FlightModes
 	{
 		FLYING,
 		HOVER,
-		WALKING,
+		FALL
+		/*WALKING,
 		TAKEOFF,
-		LANDING
+		LANDING*/
 
 	};
 
@@ -58,6 +60,8 @@ public class Controller : MonoBehaviour
     private BaseCamera              m_CurrentCamera             = null;
 
 	public bool invert_Y_axis = true;
+	public float m_TimeBetweenRocketFire = 1f;
+	float rocket_timer = 0f;
 
     #endregion
 
@@ -82,24 +86,38 @@ public class Controller : MonoBehaviour
         }
     }
 
+	// Use this for checking input (apart from movement input)
+	void Update()
+	{
+		// Check input for weapon actions
+		CheckWeaponInput();
+
+		if (!m_Character.IsDodging)
+		{
+			// Check movement input
+			CheckMovementInput();
+
+			// Check input for other action buttons
+			CheckActionInput();
+		}
+	}
+
     // Called at fixed time
     void FixedUpdate()
     {
         if (m_Character != null)
         {
+
 			switch (flight_mode)
 			{
 			case FlightModes.FLYING:
 				{
-					// Written in foxed update to avoid camera lerp break
 		            if (!m_Character.IsDodging)
 		            {
-		                // Check movement input
-		                CheckMovementInput();
-
-		                // Check action input
-		                CheckActionInput();
+		                //CheckMovementInput();
 		            }
+
+					// Written in fixed update to avoid camera lerp break
 
 		            // Check camera inputs
 		            CheckCameraInput();
@@ -108,7 +126,7 @@ public class Controller : MonoBehaviour
 		            m_Character.Move(m_Character.transform.forward, Input.GetButton("Sprint"));
 					break;
 				}
-			case FlightModes.HOVER:
+			case FlightModes.FALL:
 				{
 					break;
 				}
@@ -123,9 +141,7 @@ public class Controller : MonoBehaviour
 
 	#region Private Manipulators
 
-    /// <summary>
     /// Switch current camera with another camera
-    /// </summary>
     private void SwitchCamera()
     {
         // Check camera null
@@ -156,10 +172,8 @@ public class Controller : MonoBehaviour
         }
     }
 
-    /// <summary>
     /// Check camera inputs and call camera actions associated
-    /// </summary>
-    private void CheckCameraInput()
+	private void CheckCameraInput()
     {
         // Switch camera
         if (Input.GetButtonDown("SwitchCamera"))
@@ -168,11 +182,10 @@ public class Controller : MonoBehaviour
         }
     }
 
-    /// <summary>
     /// Check action inputs and call character actions associated
-    /// </summary>
-    private void CheckActionInput()
+	private void CheckActionInput()
     {
+		//TODO
         // Input - MAKE THIS BUTTON INSTEAD OF AXIS
         float dodgeAxis = Input.GetAxis("Dodge");
 
@@ -198,45 +211,84 @@ public class Controller : MonoBehaviour
             }
         }
 
-		if (Input.GetButtonDown("SharpTurn"))
+		if (Input.GetButtonDown("AirBrake"))
 		{
-			print("TURN");
+			print("AIRBRAKE");
 
 			//m_CurrentCamera.SetTurnView(true);
 			//m_Character.m_DodgeRollSpeed += 100;
-			m_Character.AddRoll(Input.GetAxis("Roll") * -5.0f,true);
+			//m_Character.AddRoll(Input.GetAxis("MouseX") * -5.0f,true);
 
 			//m_Character.m_DodgeRollSpeed -= 100;
-
 
 		}
     }
 
-    /// <summary>
+	/// <summary>
+	/// Checks the weapon input
+	/// </summary>
+	private void CheckWeaponInput()
+	{
+		if(Input.GetButton("Shoot"))
+		{
+			m_Character.MachineGunShoot();
+
+		}
+		else
+		{
+			m_Character.bullet_line.enabled = false;
+			m_Character.bullet_line_2.enabled = false;
+		}
+
+		/*rocket_timer += Time.time / 60f;
+		if(Input.GetButton("RocketShoot") && rocket_timer > m_TimeBetweenRocketFire)
+		{
+			m_Character.RocketShoot(null);
+			rocket_timer = 0f;
+		}*/
+
+		if(Input.GetButtonDown("RocketShoot"))
+		{
+			//m_Character.TrackClosestTargets();
+		}
+
+	}
+
     /// Check movement input and call character actions associated
-    /// </summary>
     private void CheckMovementInput()
     {
         // Input
-        float pitchAxis = Input.GetAxis("Pitch");
-        float rollAxis = Input.GetAxis("Roll");
-		
+		//float throttleAxis = Input.GetAxis("MouseScroll"); //Change speed increase scale to 10f
+		float throttleAxis = Input.GetAxis("Throttle");
+        float rudderAxis = Input.GetAxis("Rudder");
+
+		float pitchAxis = Input.GetAxis("MouseY");
+		float rollAxis = Input.GetAxis("MouseX");
+
+		Cursor.lockState = CursorLockMode.Locked;
+		Cursor.visible = false;
+
         // Pitch
         if (pitchAxis != 0)
         {
-			//invert pitch
-		if(invert_Y_axis)
-            m_Character.AddPitch(-pitchAxis);
-		else
-			m_Character.AddPitch(pitchAxis);
-		
+			// Invert pitch
+			if(invert_Y_axis)
+	            m_Character.AddPitch(pitchAxis);
+			else
+				m_Character.AddPitch(-pitchAxis);		
         }
 
         // Roll
         if (rollAxis != 0)
         {
-            m_Character.AddRoll(-rollAxis);
+            m_Character.AddRoll(rollAxis);
         }
+
+
+		m_Character.UpdateSpeed(throttleAxis);
+
+		m_Character.AddYaw(rudderAxis);
+
 
         // Reset pitch and roll depending on reset orientation method
         if (m_ResetOrientationMethod == EResetOrientationMethod.AllAxis)
@@ -252,12 +304,12 @@ public class Controller : MonoBehaviour
                 }
 
                 m_ResetAllAxisTimer += Time.deltaTime;
-            }
+			}
             else
             {
                 m_ResetAllAxisTimer = 0;
             }
-        }
+		}
         else if (m_ResetOrientationMethod == EResetOrientationMethod.PerAxis)
         {
             // Check pitch no input
@@ -293,6 +345,15 @@ public class Controller : MonoBehaviour
                 m_ResetRollAxisTimer = 0;
             }
         }
+		else if (m_ResetOrientationMethod == EResetOrientationMethod.OnButtonPress)
+		{
+			// Check pitch input
+			if (Input.GetButton("ResetOrientation"))
+			{				
+				m_Character.ResetOrientation();
+			}
+
+		}
     }
 
 #endregion

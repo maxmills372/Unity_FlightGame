@@ -1,53 +1,59 @@
 ﻿using UnityEngine;
+using System.Collections.Generic;
+using UnityEngine.UI;
 using System.Collections;
 
 [RequireComponent(typeof(Rigidbody))]
 public class Character : MonoBehaviour
 {
-    #region Attributes
+	#region PublicAttributes    
+	[Header("Attributes")]
+	public float		m_MovementSpeed         = 40f;
+	public float        m_SprintScale           = 2f;        
+	public float        m_RollRotationSpeed     = 20f;
+	public float 		m_PitchRotationSpeed 	= 20f;
+	public float 		m_YawRotationSpeed 		= 50f;
+	public float        m_DodgeRollSpeed        = 80;
+	public float        m_DodgeMovementSpeed    = 100;   
+	public float 		bullet_offset_amount   = 0.01f;
+    // Rotation limits
+    [Range(0, 90)] 
+	public float        m_PitchLimit            = 45;
+    [Range(0, 90)]
+	public float        m_RollLimit             = 45;
+    // Yaw sensibility on roll
+    [Range(0, 1)]
+	public float        m_YawSensibilityOnRoll  = 0.33f;
+	public float max_increase_speed 			= 20f;
+	public float min_increase_speed				= -20f;
+	public float speed_increase_scale 			= 0.1f;
 
-        // Controller
-        private Controller  m_Controller            = null;
 
-        // Movement speed
-        [SerializeField]
-        private float       m_MovementSpeed         = 10;
+	[Header("Unity Gameobjects")]
+	public Transform 		bullet_spawn_pos;
+	public Transform 		bullet_spawn_pos_2;
+	public ParticleSystem 	Muzzle_Flash_PS,Muzzle_Flash_PS_2;
+	public GameObject 		hit_PS;
+	public LineRenderer		bullet_line, bullet_line_2;
+	public Text 			UI_Speed;
+	public Transform 		rocket_target;
+	public GameObject		rocket_prefab;
 
-        // Sprint scale
-        [SerializeField]
-        private float       m_SprintScale           = 3;
+	#endregion     
 
-        // Rotation speed
-        [SerializeField]
-        private float       m_RotationSpeed         = 60;
+	#region PrivateVariables
 
-        // Dodge speed
-        [SerializeField]
-		public  float       m_DodgeRollSpeed        = 80;
-        [SerializeField]
-        private float       m_DodgeMovementSpeed    = 100;
+	private Controller  m_Controller            = null;
+    private bool        m_IsDodging             = false;
+    private BaseCamera  m_Camera             	= null;
+	private Rigidbody   m_Rigidbody             = null;
+	Vector3 bullet_offset;
+	float speed_increase = 0f;
+	float increase_amount = 0f;
 
-        // Rigidbody
-        private Rigidbody   m_Rigidbody             = null;
-
-        // Rotation limit
-        [SerializeField]
-        [Range(0, 90)]
-        private float       m_PitchLimit            = 45;
-        [SerializeField]
-        [Range(0, 90)]
-        private float       m_RollLimit             = 45;
-
-        // Yaw sensibility on roll
-        [SerializeField]
-        [Range(0, 1)]
-        private float       m_YawSensibilityOnRoll  = 0.33f;
-
-        // Is dodging
-        private bool        m_IsDodging             = false;
-
-        // Game camera
-        private BaseCamera  m_Camera             = null;
+	GameObject[] targets = new GameObject[100];
+	Transform current_target;
+	Transform[] current_targets = new Transform[6];
 
     #endregion
 
@@ -55,7 +61,7 @@ public class Character : MonoBehaviour
 
         // Use this for initialization
         void Start()
-        {
+        {		
             // Get controller
             m_Controller = GetComponent<Controller>();
 
@@ -66,6 +72,9 @@ public class Character : MonoBehaviour
             {
                 m_Rigidbody.useGravity = false;
             }
+
+			targets = GameObject.FindGameObjectsWithTag("Player");
+
 
         }
 
@@ -85,6 +94,7 @@ public class Character : MonoBehaviour
 
 				FreeFall(true);
 			}
+
         }
 
         // On collision enter
@@ -167,6 +177,131 @@ public class Character : MonoBehaviour
 
     #region Public Manipulators
 
+		// Fires a rocket straight or at target
+		public void RocketShoot(Transform target)
+		{
+		
+			if(target == null)
+			{
+			GameObject rocket = Instantiate(rocket_prefab,bullet_spawn_pos.position,Quaternion.LookRotation(transform.forward));
+				rocket.GetComponent<homing_missile>().CurrentRocketType = homing_missile.RocketType.Straight;
+			}
+			else
+			{
+
+			}
+
+		}
+
+		/// <summary>
+		/// Tracks the closest targets
+		/// </summary>
+		public void TrackClosestTarget()
+		{
+			float current_min = 100000.0f;
+
+
+			foreach(GameObject g in targets)
+			{
+				float distance = Vector3.Distance(g.transform.position, transform.position);
+				if(distance < current_min)
+				{
+					current_min = distance;
+					current_target = g.transform;
+				}
+			}
+
+			rocket_target = current_target;
+		}
+
+	//TODO
+	// Have this called 6 times, every time ignoring the closest target found before
+	public Transform TrackClosestTargets(int count)
+	{
+		float current_min = 100000.0f;
+
+		foreach(GameObject g in targets)
+		{
+			if(count == 6)
+				break;
+			
+			float distance = Vector3.Distance(g.transform.position, transform.position);
+			if(distance < current_min)
+			{
+				current_min = distance;
+				current_targets[count] = g.transform;
+				count++;
+			}
+		}
+		return current_target;
+
+		//rocket_targets = current_targets;
+
+	}
+		/// <summary>
+		/// Machines the gun shoot. (lol wtf)
+		/// </summary>
+		public void MachineGunShoot()
+		{
+			// Bullet spread offset
+			bullet_offset = new Vector3(Random.Range(-bullet_offset_amount,bullet_offset_amount),
+										Random.Range(-bullet_offset_amount,bullet_offset_amount),
+										0f);
+			// Creates firing rays
+			Ray gun1_ray = new Ray(bullet_spawn_pos.position, bullet_spawn_pos.forward + bullet_offset);
+			Ray gun2_ray = new Ray(bullet_spawn_pos_2.position, bullet_spawn_pos_2.forward + bullet_offset);
+
+			bullet_line.enabled = true;
+			bullet_line_2.enabled = true;
+
+			bullet_line.SetPosition(0, bullet_spawn_pos.position);
+			bullet_line.SetPosition(1, bullet_spawn_pos.position + gun1_ray.direction.normalized * 100f );
+			bullet_line_2.SetPosition(0, bullet_spawn_pos_2.position);
+			bullet_line_2.SetPosition(1, bullet_spawn_pos_2.position + gun2_ray.direction.normalized * 100f );
+
+			// Shoots ray for each gun
+			Shoot_Bullet_Raycast(gun1_ray);
+			Shoot_Bullet_Raycast(gun2_ray);
+		
+			// Plays both muzzle flash effects
+			Muzzle_Flash_PS.Play();
+			Muzzle_Flash_PS_2.Play();
+
+			//Debug.DrawRay(gun1_ray.origin,gun1_ray.direction*1000f,Color.red);
+		}
+
+		void Shoot_Bullet_Raycast(Ray ray_to_shoot)
+		{
+			RaycastHit hit_;
+
+			// Raycasts out
+			if(Physics.Raycast(ray_to_shoot, out hit_,1000f))
+			{
+				// If hit a cube
+				if(hit_.collider.tag == "Lockon")
+				{
+					// Destroy cube
+					Destroy(hit_.collider.gameObject);
+				}
+
+				// Instantiate impact effect and destroy after 1 second
+				GameObject hit_PS_instance = Instantiate(hit_PS, hit_.point,Quaternion.LookRotation(hit_.normal));
+				Destroy(hit_PS_instance,0.5f);
+			}
+		}
+		/// <summary>
+		/// Updates the speed.
+		/// </summary>
+		public void UpdateSpeed(float speed)
+		{
+			// This is used if an axis is used, or if speed is on button press
+			if(speed > 0f)
+				speed_increase = 1f;
+			else if(speed < 0f)
+				speed_increase = -1f;
+			else
+				speed_increase = 0f;
+		}
         /// <summary>
         /// Start coroutine responsible of dodge
         /// </summary>
@@ -192,7 +327,6 @@ public class Character : MonoBehaviour
         /// <param name="_Direction">Movement direction (world space)</param>
         /// <param name="_Sprint">Bosst speed</param>
         /// <param name="_Dodge">Is a dodge movement</param>
-
         public void Move(Vector3 _Direction, bool _Sprint, bool _Dodge = false)
         {
             if (m_Rigidbody != null)
@@ -209,6 +343,29 @@ public class Character : MonoBehaviour
                 {
                     speed *= m_SprintScale;
                 }
+				else if(!_Dodge)
+				{
+					speed += increase_amount;
+				}
+
+				if(speed_increase > 0f)
+				{
+					if(increase_amount < max_increase_speed)
+					{
+						//speed += increase_scale;
+						increase_amount += speed_increase_scale;
+					}
+				}
+				else if(speed_increase < 0f)
+				{
+					if(increase_amount > min_increase_speed)
+					{
+						//speed -= increase_scale;
+						increase_amount -= speed_increase_scale;
+					}
+				}				
+				
+				UI_Speed.text = speed.ToString();
 
                 // Movement
                 m_Rigidbody.MovePosition(m_Rigidbody.position + _Direction.normalized * Time.deltaTime * speed);
@@ -254,45 +411,45 @@ public class Character : MonoBehaviour
             forwardNoY.Normalize();
 
             // Apply projected forward
-            transform.rotation = Quaternion.Lerp(transform.rotation, Quaternion.LookRotation(forwardNoY), Time.deltaTime);
+            transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(forwardNoY), Time.deltaTime * 1.5f);
         }
 
         /// <summary>
         /// Add roll to character rotation
         /// </summary>
-        /// <param name="_AdditiveRoll">Roll value to add</param>
         public void AddRoll(float _AdditiveRoll, bool _Dodge = false)
         {
             // Check roll limit
-            /*
-            if (m_RollLimit > 0)
-            {
-                if (!CheckRollLimit(_AdditiveRoll))
-                {
-                    return;
-                }
-            }*/
-
+            
+		if (m_RollLimit > 0)
+		{
+			if (!CheckRollLimit(_AdditiveRoll))
+			{
+				return;
+			}
+		}
             // Time based rotation
             if (!_Dodge)
             {
-                _AdditiveRoll *= Time.deltaTime * m_RotationSpeed;
+				_AdditiveRoll *= Time.deltaTime * m_RollRotationSpeed;
             }
             else
             {
                 _AdditiveRoll *= Time.deltaTime * m_DodgeRollSpeed;
             }
 
+	
+
+
             // Add rotation
 			// Use transform.forward for plane controls
-            Quaternion rotator = Quaternion.AngleAxis(_AdditiveRoll, -transform.up);
+			Quaternion rotator = Quaternion.AngleAxis(_AdditiveRoll, -transform.forward);
             transform.rotation = rotator * transform.rotation;
         }
 
         /// <summary>
         /// Add pitch to character rotation
         /// </summary>
-        /// <param name="_AdditivePitch">Pitch value to add</param>
         public void AddPitch(float _AdditivePitch)
         {
             // Check pitch limit
@@ -306,12 +463,35 @@ public class Character : MonoBehaviour
             }*/
 
             // Time based rotation
-            _AdditivePitch *= Time.deltaTime * m_RotationSpeed;
+			_AdditivePitch *= Time.deltaTime * m_PitchRotationSpeed;
 
             // Add rotation
             Quaternion rotator = Quaternion.AngleAxis(_AdditivePitch, transform.right);
             transform.rotation = rotator * transform.rotation;
         }
+
+		/// <summary>
+		/// Adds the yaw.
+		/// </summary>
+		public void AddYaw(float _AdditiveYaw)
+		{
+			// Check yaw limit
+			/*
+	            if (m_YawLimit > 0)
+	            {
+	                if (!CheckPitchLimit(_AdditiveYaw))
+	                {
+	                    return;
+	                }
+	            }*/
+
+			// Time based rotation
+			_AdditiveYaw *= Time.deltaTime * m_YawRotationSpeed;
+
+			// Add rotation
+			Quaternion rotator = Quaternion.AngleAxis(-_AdditiveYaw, transform.up);
+			transform.rotation = rotator * transform.rotation;
+		}
 
     #endregion
 
@@ -320,21 +500,19 @@ public class Character : MonoBehaviour
         /// <summary>
         /// Dodge on left or right depending of input
         /// </summary>
-        /// <param name="_Input"></param>
-        /// <returns></returns>
         private IEnumerator CR_Dodge(float _Input)
         {
             float sumInput = 0;
             m_IsDodging = true;
 
             // Get old right local axis
-            Vector3 oldRight = transform.right;
+			Vector3 oldRight = transform.right;
 
             // Wait entire roll
             while (Mathf.Abs(sumInput) < 360)
             {
                 // Roll
-                AddRoll(-_Input, true);
+                AddRoll(-_Input,true);
 
                 // Movement
                 Move(oldRight * _Input, false, true);
@@ -396,7 +574,7 @@ public class Character : MonoBehaviour
 
             if (Vector3.Cross(transform.forward, rightNoY).y < 0)
             {
-                roll *= -1;
+                roll *= -1f;
             }
 
             // Check roll limit
