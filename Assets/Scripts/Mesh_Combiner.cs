@@ -12,7 +12,7 @@ public class Mesh_Combiner : MonoBehaviour {
 	void Start () {
 		//CombineChildMeshes();
 	}
-	
+
 	// Update is called once per frame
 	void Update () {
 		if(combine_)
@@ -47,8 +47,7 @@ public class Mesh_Combiner : MonoBehaviour {
 		Mesh final_mesh = new Mesh();
 
 		CombineInstance[] combiners = new CombineInstance[filters.Length];
-		Mesh mesh_instance2 = new Mesh();	
-		MeshFilter filter_instance2 = new MeshFilter();
+
 
 		for (int i = 0; i<filters.Length; i++)
 		{				
@@ -57,7 +56,7 @@ public class Mesh_Combiner : MonoBehaviour {
 				mesh_instance.name = "MyMesh";
 				mesh_instance.CombineMeshes(combiners);
 
-				filter_instance.mesh = mesh_instance;
+				filter_instance.sharedMesh = mesh_instance;
 
 				combined_meshes.Add(mesh_instance);
 				new_filters.Add(filter_instance);
@@ -67,17 +66,18 @@ public class Mesh_Combiner : MonoBehaviour {
 
 			if(filters[i].transform == transform)
 				continue;
-			
+
 			combiners[i].subMeshIndex = 0;
 			combiners[i].mesh = filters[i].sharedMesh;
 			combiners[i].transform = filters[i].transform.localToWorldMatrix;
 
 			vertex_count += combiners[i].mesh.vertexCount;
-			
-			
+
+
 		}
-
-
+		/*
+		Mesh mesh_instance2 = new Mesh();	
+		MeshFilter filter_instance2 = new MeshFilter();
 
 		mesh_instance2.name = "MyMesh";
 		mesh_instance2.CombineMeshes(combiners);
@@ -97,10 +97,10 @@ public class Mesh_Combiner : MonoBehaviour {
 			vertex_count += mesh_combiners[i].mesh.vertexCount;
 
 		}
-
+		*/
 
 		final_mesh.name = "MyFinalMesh";
-		final_mesh.CombineMeshes(mesh_combiners);
+		final_mesh.CombineMeshes(combiners);
 
 		GetComponent<MeshFilter>().sharedMesh = final_mesh;
 
@@ -114,7 +114,7 @@ public class Mesh_Combiner : MonoBehaviour {
 
 		// Colour of region
 		GetComponent<Renderer>().material.color = GetComponentInChildren<Renderer>().material.color;
-		
+
 
 
 		/*
@@ -131,7 +131,7 @@ public class Mesh_Combiner : MonoBehaviour {
 		{
 			box_colliders[i].size = old_scale;
 		}*/
-	
+
 		transform.position = old_pos;
 		transform.rotation = old_rot;
 		transform.localScale = Vector3.one;
@@ -145,7 +145,7 @@ public class Mesh_Combiner : MonoBehaviour {
 			}
 
 		}
-			
+
 		combine_ = false;
 	}
 

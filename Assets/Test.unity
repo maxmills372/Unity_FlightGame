@@ -354,7 +354,7 @@ GameObject:
   - component: {fileID: 76031608}
   m_Layer: 0
   m_Name: Region
-  m_TagString: Untagged
+  m_TagString: Lockon
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -891,8 +891,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 5cdc27ed9f19c034f89bd17976aff700, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  resolution: 11
-  region_amount: 20
+  resolution: 20
+  region_amount: 11
+  all_ya: 0
   create_grid: 0
   voronoi_break: 0
   combine_meshes: 0
@@ -901,6 +902,7 @@ MonoBehaviour:
   test_cube: {fileID: 46353622}
   test_sphere: {fileID: 76031603}
   grid_parent: {fileID: 1928348128}
+  rigidbody_clone: {fileID: 471963649}
   regions: []
 --- !u!23 &247733296
 MeshRenderer:
@@ -3016,6 +3018,50 @@ MeshFilter:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 467949531}
   m_Mesh: {fileID: 10202, guid: 0000000000000000e000000000000000, type: 0}
+--- !u!1 &471963648
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 471963650}
+  - component: {fileID: 471963649}
+  m_Layer: 0
+  m_Name: RigidbodyClone
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!54 &471963649
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 471963648}
+  serializedVersion: 2
+  m_Mass: 2.34
+  m_Drag: 0.6
+  m_AngularDrag: 0.4
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
+--- !u!4 &471963650
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 471963648}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: -99.20386, y: 84.16449, z: -199.76157}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 25
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &531458357
 GameObject:
   m_ObjectHideFlags: 0
@@ -3937,7 +3983,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 800644328}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 0, y: -0.17600012, z: 0}
+  m_LocalPosition: {x: 0, y: -102, z: 0}
   m_LocalScale: {x: 1000, y: 1, z: 1000}
   m_Children: []
   m_Father: {fileID: 0}
@@ -5024,7 +5070,7 @@ Rigidbody:
   m_Drag: 0
   m_AngularDrag: 0.05
   m_UseGravity: 0
-  m_IsKinematic: 0
+  m_IsKinematic: 1
   m_Interpolate: 0
   m_Constraints: 112
   m_CollisionDetection: 0
@@ -5390,7 +5436,7 @@ GameObject:
   - component: {fileID: 1637979220}
   - component: {fileID: 1637979224}
   - component: {fileID: 1637979223}
-  m_Layer: 8
+  m_Layer: 2
   m_Name: Lockon_Cone
   m_TagString: Untagged
   m_Icon: {fileID: 0}

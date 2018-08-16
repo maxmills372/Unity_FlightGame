@@ -6,6 +6,7 @@ public class Voronoi_Test : MonoBehaviour
 {
 	public int resolution = 50;
 	public int region_amount = 5;
+	public bool all_ya = false;
 	public bool create_grid = false;
 	public bool voronoi_break = false;
 	public bool combine_meshes = false;
@@ -14,6 +15,7 @@ public class Voronoi_Test : MonoBehaviour
 
 	public GameObject test_cube,test_sphere;
 	public GameObject grid_parent;
+	public Rigidbody rigidbody_clone;
 
 	Object_Pool object_pooler;
 
@@ -28,6 +30,7 @@ public class Voronoi_Test : MonoBehaviour
 	Color temp_color;
 	bool created_ = false;
 	bool broken_up = false; 
+	bool combined = false;
 
 	[System.Serializable]
 	public struct region
@@ -51,21 +54,26 @@ public class Voronoi_Test : MonoBehaviour
 	// Update is called once per frame
 	void Update ()
 	{
+		if(all_ya)
+		{
+			all_ya = false;
+			StartCoroutine("BreakObject");
+		}
+
 		if(create_grid)
 		{
 			CreateGrid();
 		}
-
-		// if broken
+		// If broken and grid is created
 		if(voronoi_break && created_)
 		{
 			VoronoiBreak();
 		}
-		if(combine_meshes)
+		if(combine_meshes && broken_up)
 		{
 			CombineMeshes();
 		}
-		if(give_rigidbodies)
+		if(give_rigidbodies && combined)
 		{
 			AddRigidbodies();
 		}
@@ -82,7 +90,20 @@ public class Voronoi_Test : MonoBehaviour
 			print("HIT");
 		}
 	}
-	public void CreateGrid()
+	IEnumerator BreakObject()
+	{
+
+		yield return new WaitUntil(() => CreateGrid());
+		yield return new WaitUntil(() => VoronoiBreak());
+
+		yield return new WaitUntil(() =>CombineMeshes());
+
+		AddRigidbodies();
+
+		yield return null;
+	}
+
+	public bool CreateGrid()
 	{
 		Reset_Object();
 
@@ -95,14 +116,11 @@ public class Voronoi_Test : MonoBehaviour
 		// Bottom left of object
 		start_pos = transform.position - new Vector3(transform.localScale.x/2.0f, transform.localScale.y/2.0f, transform.localScale.z/2.0f);
 
-		// Test cubes
-		//test_cube.transform.localScale = new Vector3(this.transform.localScale.x/resolution,test_cube.transform.localScale.y,this.transform.localScale.z/resolution);
-		//test_cube.transform.position = start_pos + new Vector3(test_cube.transform.localScale.x/2.0f,0.0f,test_cube.transform.localScale.z/2.0f);
-
 		// Calculate the scale of each object
 		object_scale = new Vector3(this.transform.localScale.x/resolution,this.transform.localScale.y/resolution, this.transform.localScale.z/resolution);
 
 		float st_ = Time.realtimeSinceStartup;
+
 
 		// Create grid of Gameobjects
 		GameObject temp_object;
@@ -151,6 +169,8 @@ public class Voronoi_Test : MonoBehaviour
 
 			// Assign parent
 			regions[r].parent = region_sphere;
+
+			regions[r].members = new List<GameObject>();
 		}
 
 		// Hide actual object
@@ -158,11 +178,11 @@ public class Voronoi_Test : MonoBehaviour
 
 		create_grid = false;
 		created_ = true;
+		return true;
 	}
 
-	public void VoronoiBreak()
+	public bool VoronoiBreak()
 	{
-		
 		// Find closest region for every object
 		for(int i = 0; i<resolution; i++)
 		{
@@ -170,7 +190,7 @@ public class Voronoi_Test : MonoBehaviour
 			{
 				for(int k = 0; k<resolution; k++)
 				{
-					closest_dist = 10000.0f;
+					closest_dist = 1000000.0f;
 					// For every region
 					for(int r = 0; r<region_amount; r++)
 					{
@@ -184,8 +204,10 @@ public class Voronoi_Test : MonoBehaviour
 							// Update closest and store region array identifier
 							closest_dist = temp_dist;
 							temp_int = r;
+
 						}					
 					}
+
 					// Add closest to that region
 					regions[temp_int].members.Add(grid_[i,j,k]);
 
@@ -211,8 +233,10 @@ public class Voronoi_Test : MonoBehaviour
 		broken_up = true;
 		created_ = false;
 
+		return true;
+
 	}
-	void CombineMeshes()
+	bool CombineMeshes()
 	{	
 		// For every region member 
 		for(int r = 0; r<region_amount; r++)
@@ -221,7 +245,12 @@ public class Voronoi_Test : MonoBehaviour
 		}
 
 		combine_meshes = false;
+		combined = true;
+
+
+		return true;
 	}
+
 	void AddRigidbodies()
 	{
 		give_rigidbodies = false;
@@ -232,7 +261,15 @@ public class Voronoi_Test : MonoBehaviour
 		// For every region member 
 		for(int r = 0; r<region_amount; r++)
 		{
+			// Add a rigidbody with components from the clone
 			regions[r].control_point.AddComponent<Rigidbody>();
+			regions[r].control_point.GetComponent<Rigidbody>().mass = rigidbody_clone.mass;
+			regions[r].control_point.GetComponent<Rigidbody>().drag = rigidbody_clone.drag;
+			regions[r].control_point.GetComponent<Rigidbody>().angularDrag = rigidbody_clone.angularDrag;
+			regions[r].control_point.GetComponent<Rigidbody>().useGravity = rigidbody_clone.useGravity;
+
+
+
 		}
 	}
 	void Reset_Object()

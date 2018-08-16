@@ -6,7 +6,7 @@ public class LockOn : MonoBehaviour {
 
 	public GameObject[] lock_on_objects = new GameObject[1000];
 	public List<GameObject> visible_objects;
-	Transform current_target, target;
+	GameObject current_target, target;
 
 	public GameObject target_sphere;
 	public bool map_generated_, stop_ = false; 
@@ -29,8 +29,8 @@ public class LockOn : MonoBehaviour {
 			lock_on_objects = GameObject.FindGameObjectsWithTag("Lockon");
 			stop_ = true;
 		}
-		foreach(GameObject g in lock_on_objects)
-		{
+		//foreach(GameObject g in lock_on_objects)
+		//{
 //			if(g.GetComponent<Renderer>().isVisible)
 //			{
 //				if(!visible_objects.Contains(g))
@@ -43,10 +43,15 @@ public class LockOn : MonoBehaviour {
 //			{
 //				visible_objects.Remove(g);
 //			}
-		}
+		//}
 
-		FindTarget();
-		target_sphere.transform.position = target.position;
+		//if(target != null)
+		//{
+			FindTarget();
+			target_sphere.transform.position = target.transform.position;
+
+		//}
+
 	}
 
 	void FindTarget()
@@ -61,7 +66,7 @@ public class LockOn : MonoBehaviour {
 				if(distance < current_min)
 				{
 					current_min = distance;
-					current_target = g.transform;
+					current_target = g;
 				}
 			}
 		}
