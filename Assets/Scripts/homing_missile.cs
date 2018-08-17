@@ -9,15 +9,24 @@ public class homing_missile : MonoBehaviour {
 	public float rotate_speed = 200.0f;
 	public float explosion_radius = 100f;
 	public float explosion_force = 100f;
-	public GameObject explodePS;
+	public float no_target_explode_time = 5f;
 
-	public GameObject[] targets = new GameObject[10];
-	Transform current_target;
+	public GameObject explodePS;
 	public Transform target;
+	public GameObject[] targets = new GameObject[10];
+
+	Transform current_target;
 	Rigidbody rb;
+	homing_missile Homing_Missile_Script;
+	MeshRenderer mesh_renderer;
+	Vector3 direction;
+	Vector3 rotate_amount;
+	float timer;
 
 	// Pathfinding variables
-	Ray forward_ray,left_ray, right_ray;
+	Vector3 left, right, up, down,forward;
+	Vector3 rotation_offset;
+
 	float turn_angle = 0.5f;
 	Vector3 offset;
 	Vector3 ray_direction;
@@ -27,15 +36,16 @@ public class homing_missile : MonoBehaviour {
 	public float turn_speed = 20f;
 	public string target_tag = "Player";
 
-	Vector3 direction;
-	Vector3 rotate_amount;
-
+	public Vector3 ray_offset_angle_X = Vector3.zero;
+	public Vector3 ray_offset_angle_Y = Vector3.zero;
+	 
 	[System.Serializable]
 	public enum RocketType
 	{
 		Straight,
 		Target,
 		Target_Pathfind,
+		Closest_Pathfind,
 		Closest,
 		Null
 	};
@@ -48,6 +58,8 @@ public class homing_missile : MonoBehaviour {
 		targets = GameObject.FindGameObjectsWithTag("Player");
 
 		rb = GetComponent<Rigidbody>();
+		Homing_Missile_Script = GetComponent<homing_missile>();
+		mesh_renderer = GetComponent<MeshRenderer>();
 	}
 		
 	// Update is called once per frame
@@ -65,17 +77,24 @@ public class homing_missile : MonoBehaviour {
 			
 			//SetTarget();
 			// Set target first!!!
+
 			TrackTarget();
 			break;
+
 		case RocketType.Target_Pathfind:
 			
 			// Uses target passed in for now
 			// target = ...
 
 			Pathfinding();
+
 			//PathfindToTarget();
 			//TrackTarget();
 
+			break;
+		case RocketType.Closest_Pathfind:
+			FindTarget();
+			Pathfinding();
 			break;
 		case RocketType.Straight:
 			MoveForward();
@@ -111,6 +130,7 @@ public class homing_missile : MonoBehaviour {
 	{
 		target.position = target_;
 	}
+
 	void MoveForward()
 	{
 		transform.Translate(transform.forward * move_speed * Time.deltaTime);	
@@ -133,93 +153,140 @@ public class homing_missile : MonoBehaviour {
 
 	void OnTriggerEnter(Collider col)
 	{
+		// If not hitting an object with this Layer
 		if(col.gameObject.layer != LayerMask.NameToLayer("Ignore Raycast"))
 		{
 			print("HIT: " + col.name);
 
-			//ExplodeFromHere();
-			GameObject Explode_Instance = Instantiate(explodePS,transform.position,Quaternion.identity) as GameObject;
-			Destroy(Explode_Instance,2f);
-			Destroy(this.gameObject);
+			// #Boom
+			Explode();
+
 		}
+	}
+	public void Explode()
+	{
+		// Create explosion force 
+		ExplodeForceFromHere();
+
+		// Instantiate explode effect
+		GameObject Explode_Instance = Instantiate(explodePS,transform.position,Quaternion.identity) as GameObject;
+		Destroy(Explode_Instance,1.5f);
+
+		// Destroy this after 2 secs (after smoke effect stored as a child has faded away)
+		Destroy(this.gameObject,2f);
+
+		// Hide + remove components 
+		mesh_renderer.enabled = false;
+
+		// Removed so object stops moving 
+		Destroy(Homing_Missile_Script);
+		Destroy(rb);
 	}
 
 	public void Pathfinding()
 	{
-		
-		Vector3 left, right, up, down;
-		Vector3 rotation_offset = Vector3.zero;
+		rotation_offset = Vector3.zero;
 
 		left = transform.position - transform.right * ray_offset;
 		right = transform.position + transform.right * ray_offset;
 		up = transform.position + transform.up * ray_offset;
 		down = transform.position - transform.up * ray_offset;
 
-		/*Debug.DrawRay(left ,transform.forward * ray_dist, Color.red);
-		Debug.DrawRay(right ,transform.forward * ray_dist,Color.blue);
-		Debug.DrawRay(up,transform.forward * ray_dist,Color.green);
-		Debug.DrawRay(down,transform.forward * ray_dist,Color.green);
-*/
+		forward = transform.position + transform.forward;
+
 		RaycastHit hit;
-		if(Physics.Raycast(left, transform.forward, out hit, ray_dist))
+		//LEFT + RIGHT
+		if(Physics.Raycast(left, transform.forward - ray_offset_angle_X, out hit, ray_dist))
 		{
 			if(hit.collider.tag != target_tag)
 				rotation_offset += Vector3.up;
+
+			/*if(Physics.Raycast(right, transform.forward + ray_offset_angle_X, out hit, ray_dist))	
+			{
+				// Expand search
+				ray_offset_angle_X.x += 0.5f;
+			}*/
 		}
-		else if(Physics.Raycast(right, transform.forward, out hit, ray_dist))
+		else if(Physics.Raycast(right, transform.forward + ray_offset_angle_X, out hit, ray_dist))
 		{
 			if(hit.collider.tag != target_tag)
 				rotation_offset -= Vector3.up;
 		}
 
-		if(Physics.Raycast(up, transform.forward, out hit, ray_dist))
+		// Check UP
+		if(Physics.Raycast(up, transform.forward + ray_offset_angle_Y, out hit, ray_dist))
 		{
 			if(hit.collider.tag != target_tag)
 				rotation_offset += Vector3.right;
-		}
-		else if(Physics.Raycast(down, transform.forward, out hit, ray_dist))
+
+			// Check UP + DOWN
+			/*if(Physics.Raycast(down, transform.forward - ray_offset_angle_Y, out hit, ray_dist))	
+			{
+				// Expand search
+				if(ray_offset_angle_Y.y < 1f)
+					ray_offset_angle_Y.y += 0.5f;
+
+			}*/
+		}// Check DOWN
+		else if(Physics.Raycast(down, transform.forward - ray_offset_angle_Y, out hit, ray_dist))
 		{
 			if(hit.collider.tag != target_tag)				
 				rotation_offset -= Vector3.right;
 		}
 
-
+		// If offset has been set
 		if(rotation_offset != Vector3.zero)
 		{
+			// Apply rotation to avoid obstacles
+
 			transform.Rotate(rotation_offset * turn_speed * Time.deltaTime);
-			rb.velocity = transform.forward * move_speed;
+
 		}
 		else
-		{/*
+		{
+			/*
 			direction = (target.position - rb.position);
 			Quaternion rot = Quaternion.LookRotation(direction);
 			transform.rotation = Quaternion.Slerp(transform.rotation, rot, rotatation_damp * Time.deltaTime);
-*/
-			rb.velocity = transform.forward * move_speed;
-		
-			direction = target.position - rb.position;
+			*/
 
-			direction.Normalize();
+			// Rotate towards target
+			if(target != null)
+			{
+				direction = target.position - rb.position;
 
-			rotate_amount = Vector3.Cross(direction,transform.forward);
+				direction.Normalize();
 
-			rb.angularVelocity = -rotate_amount * rotate_speed * Time.deltaTime;
+				rotate_amount = Vector3.Cross(direction,transform.forward);
+
+				rb.angularVelocity = -rotate_amount * rotate_speed * Time.deltaTime;
+
+			}
+			// Reset ray angle offset
+			ray_offset_angle_X = Vector3.zero;
+			ray_offset_angle_Y = Vector3.zero;
+
 
 		}
-	}
 
-	public void PathfindToTarget()
-	{
-		
-
-
-		rb.angularVelocity = -rotate_amount * rotate_speed * Time.deltaTime;
-
+		// Move towards target
 		rb.velocity = transform.forward * move_speed;
 
+		// If no target, explode after time
+		if(target == null)
+			StartCoroutine("ExplodeAfterTime");
+		else
+			StopCoroutine("ExplodeAfterTime");
+
+
+		Debug.DrawRay(left ,(transform.forward - ray_offset_angle_X) * ray_dist , Color.red);
+		Debug.DrawRay(right ,(transform.forward + ray_offset_angle_X)  * ray_dist,Color.red);
+		Debug.DrawRay(up,(transform.forward  + ray_offset_angle_Y)  * ray_dist,Color.green);
+		Debug.DrawRay(down,(transform.forward  - ray_offset_angle_Y)  * ray_dist,Color.green);
+		Debug.DrawRay(forward,transform.forward * ray_dist,Color.cyan);
 	}
 
-	public void ExplodeFromHere()
+	public void ExplodeForceFromHere()
 	{
 		Vector3 explosion_pos = transform.position;
 		Collider[] colliders = Physics.OverlapSphere(explosion_pos, explosion_radius);
@@ -232,5 +299,15 @@ public class homing_missile : MonoBehaviour {
 				hit_rb.AddExplosionForce(explosion_force,explosion_pos,explosion_radius,3f);
 		}
 	
+	}
+	// Explodes after time (with no target) has been reached
+	IEnumerator ExplodeAfterTime()
+	{
+		yield return new WaitForSeconds(no_target_explode_time);
+
+		Explode();			
+		yield return null;
+
+
 	}
 }
