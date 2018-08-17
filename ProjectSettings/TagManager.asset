@@ -7,6 +7,7 @@ TagManager:
   - Lockon
   - Orb
   - Fire
+  - Cone
   layers:
   - Default
   - TransparentFX

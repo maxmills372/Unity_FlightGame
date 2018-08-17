@@ -306,7 +306,7 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   target: {fileID: 0}
-  CurrentRocketType: 0
+  CurrentRocketType: 1
 --- !u!198 &198479072501544714
 ParticleSystem:
   m_ObjectHideFlags: 1

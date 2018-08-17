@@ -57,7 +57,12 @@ public class Voronoi_Test : MonoBehaviour
 		if(all_ya)
 		{
 			all_ya = false;
-			StartCoroutine("BreakObject");
+			//StartCoroutine("BreakObject");
+			CreateGrid();
+			VoronoiBreak();
+			CombineMeshes();
+			AddRigidbodies();
+
 		}
 
 		if(create_grid)
@@ -269,7 +274,7 @@ public class Voronoi_Test : MonoBehaviour
 			regions[r].control_point.GetComponent<Rigidbody>().useGravity = rigidbody_clone.useGravity;
 
 
-
+			
 		}
 	}
 	void Reset_Object()

@@ -368,7 +368,9 @@ public class Character : MonoBehaviour
 				UI_Speed.text = speed.ToString();
 
                 // Movement
-                m_Rigidbody.MovePosition(m_Rigidbody.position + _Direction.normalized * Time.deltaTime * speed);
+                //m_Rigidbody.MovePosition(m_Rigidbody.position + _Direction.normalized * Time.deltaTime * speed);
+				m_Rigidbody.velocity = new Vector3(_Direction.x * speed,_Direction.y * speed,  _Direction.z * speed);
+
             }
         }
 
@@ -506,7 +508,7 @@ public class Character : MonoBehaviour
             m_IsDodging = true;
 
             // Get old right local axis
-			Vector3 oldRight = transform.right;
+		Vector3 oldRight = transform.right * 10f;
 
             // Wait entire roll
             while (Mathf.Abs(sumInput) < 360)

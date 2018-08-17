@@ -60,6 +60,7 @@ public class Controller : MonoBehaviour
     private BaseCamera              m_CurrentCamera             = null;
 
 	public bool invert_Y_axis = true;
+	public bool m_LockMouse = true;
 	public float m_TimeBetweenRocketFire = 1f;
 	float rocket_timer = 0f;
 
@@ -265,8 +266,11 @@ public class Controller : MonoBehaviour
 		float pitchAxis = Input.GetAxis("MouseY");
 		float rollAxis = Input.GetAxis("MouseX");
 
-		Cursor.lockState = CursorLockMode.Locked;
-		Cursor.visible = false;
+		if(m_LockMouse)
+		{
+			Cursor.lockState = CursorLockMode.Locked;
+			Cursor.visible = false;
+		}
 
         // Pitch
         if (pitchAxis != 0)
