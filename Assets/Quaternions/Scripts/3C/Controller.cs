@@ -241,12 +241,12 @@ public class Controller : MonoBehaviour
 			m_Character.bullet_line_2.enabled = false;
 		}
 
-		/*rocket_timer += Time.time / 60f;
+		rocket_timer += Time.time / 60f;
 		if(Input.GetButton("RocketShoot") && rocket_timer > m_TimeBetweenRocketFire)
 		{
 			m_Character.RocketShoot(null);
 			rocket_timer = 0f;
-		}*/
+		}
 
 		if(Input.GetButtonDown("RocketShoot"))
 		{

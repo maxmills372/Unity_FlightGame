@@ -183,7 +183,7 @@ public class Character : MonoBehaviour
 		
 			if(target == null)
 			{
-			GameObject rocket = Instantiate(rocket_prefab,bullet_spawn_pos.position,Quaternion.LookRotation(transform.forward));
+				GameObject rocket = Instantiate(rocket_prefab,bullet_spawn_pos.position,Quaternion.LookRotation(transform.forward));
 				rocket.GetComponent<homing_missile>().CurrentRocketType = homing_missile.RocketType.Straight;
 			}
 			else

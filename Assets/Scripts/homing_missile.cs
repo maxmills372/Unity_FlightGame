@@ -38,7 +38,8 @@ public class homing_missile : MonoBehaviour {
 
 	public Vector3 ray_offset_angle_X = Vector3.zero;
 	public Vector3 ray_offset_angle_Y = Vector3.zero;
-	 
+	Vector3 original_target_pos; 
+
 	[System.Serializable]
 	public enum RocketType
 	{
@@ -60,6 +61,9 @@ public class homing_missile : MonoBehaviour {
 		rb = GetComponent<Rigidbody>();
 		Homing_Missile_Script = GetComponent<homing_missile>();
 		mesh_renderer = GetComponent<MeshRenderer>();
+
+		if(target != null)
+			original_target_pos = target.position;
 	}
 		
 	// Update is called once per frame
@@ -133,13 +137,18 @@ public class homing_missile : MonoBehaviour {
 
 	void MoveForward()
 	{
-		transform.Translate(transform.forward * move_speed * Time.deltaTime);	
-		//rb.MovePosition(rb.position + transform.up * Time.deltaTime * move_speed);
+		//transform.Translate(transform.forward * move_speed * Time.deltaTime);	
+		//rb.MovePosition(rb.position + transform.forward * Time.deltaTime * move_speed);
+		rb.velocity = transform.forward * move_speed;
 
-		//rb.angularVelocity = Vector3.up * rotate_speed * Time.deltaTime;
+		rb.angularVelocity = Vector3.zero;
+
+		StartCoroutine("ExplodeAfterTime", 5f);
+
 	}
 	void TrackTarget()
 	{
+		target.position = original_target_pos + new Vector3(5f,0f,0f);
 		direction = target.position - rb.position + offset;
 
 		direction.Normalize();
@@ -274,7 +283,7 @@ public class homing_missile : MonoBehaviour {
 
 		// If no target, explode after time
 		if(target == null)
-			StartCoroutine("ExplodeAfterTime");
+			StartCoroutine("ExplodeAfterTime", no_target_explode_time);
 		else
 			StopCoroutine("ExplodeAfterTime");
 
@@ -301,9 +310,9 @@ public class homing_missile : MonoBehaviour {
 	
 	}
 	// Explodes after time (with no target) has been reached
-	IEnumerator ExplodeAfterTime()
+	IEnumerator ExplodeAfterTime(float time)
 	{
-		yield return new WaitForSeconds(no_target_explode_time);
+		yield return new WaitForSeconds(time);
 
 		Explode();			
 		yield return null;
