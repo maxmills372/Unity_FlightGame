@@ -15,7 +15,8 @@ public class Character : MonoBehaviour
 	public float 		m_YawRotationSpeed 		= 50f;
 	public float        m_DodgeRollSpeed        = 80;
 	public float        m_DodgeMovementSpeed    = 100;   
-	public float 		bullet_offset_amount   = 0.01f;
+	public float 		m_BulletOffsetAmount    = 0.01f;
+
     // Rotation limits
     [Range(0, 90)] 
 	public float        m_PitchLimit            = 45;
@@ -24,20 +25,19 @@ public class Character : MonoBehaviour
     // Yaw sensibility on roll
     [Range(0, 1)]
 	public float        m_YawSensibilityOnRoll  = 0.33f;
-	public float max_increase_speed 			= 20f;
-	public float min_increase_speed				= -20f;
-	public float speed_increase_scale 			= 0.1f;
+	public float 		m_MaxIncreaseSpeed 		= 20f;
+	public float		m_MinIncreaseSpeed		= -20f;
+	public float 		m_SpeedIncreaseScale 	= 0.1f;
 
 
 	[Header("Unity Gameobjects")]
-	public Transform 		bullet_spawn_pos;
-	public Transform 		bullet_spawn_pos_2;
-	public ParticleSystem 	Muzzle_Flash_PS,Muzzle_Flash_PS_2;
-	public GameObject 		hit_PS;
-	public LineRenderer		bullet_line, bullet_line_2;
-	public Text 			UI_Speed;
-	public Transform 		rocket_target;
-	public GameObject		rocket_prefab;
+	public Transform 		m_BulletSpawnPosLeft;
+	public Transform 		m_BulletSpawnPosRight;
+	public ParticleSystem 	m_MuzzleFlashPS, m_MuzzleFlashPS_2;
+	public GameObject 		m_HitPS;
+	public LineRenderer		m_BulletLineRend, m_BulletLineRend_2;
+	public Text 			m_SpeedUIText;
+	public GameObject		m_RocketPrefab;
 
 	#endregion     
 
@@ -50,10 +50,12 @@ public class Character : MonoBehaviour
 	Vector3 bullet_offset;
 	float speed_increase = 0f;
 	float increase_amount = 0f;
+	float current_speed;
 
 	GameObject[] targets = new GameObject[100];
 	Transform current_target;
 	Transform[] current_targets = new Transform[6];
+	Transform rocket_target;
 
     #endregion
 
@@ -178,13 +180,21 @@ public class Character : MonoBehaviour
     #region Public Manipulators
 
 		// Fires a rocket straight or at target
-		public void RocketShoot(Transform target)
+		public void RocketShoot(Transform target,bool is_left_turret)
 		{
+			Vector3 rocket_spawn_pos;
+			if(is_left_turret)
+				rocket_spawn_pos = m_BulletSpawnPosLeft.position;
+			else
+				rocket_spawn_pos = m_BulletSpawnPosRight.position;
 		
 			if(target == null)
-			{
-				GameObject rocket = Instantiate(rocket_prefab,bullet_spawn_pos.position,Quaternion.LookRotation(transform.forward));
+			{			
+				GameObject rocket = Instantiate(m_RocketPrefab,rocket_spawn_pos,Quaternion.LookRotation(transform.forward));
+
 				rocket.GetComponent<homing_missile>().CurrentRocketType = homing_missile.RocketType.Straight;
+				//rocket.GetComponent<homing_missile>().move_speed = current_speed + 10f;
+
 			}
 			else
 			{
@@ -244,28 +254,28 @@ public class Character : MonoBehaviour
 		public void MachineGunShoot()
 		{
 			// Bullet spread offset
-			bullet_offset = new Vector3(Random.Range(-bullet_offset_amount,bullet_offset_amount),
-										Random.Range(-bullet_offset_amount,bullet_offset_amount),
+			bullet_offset = new Vector3(Random.Range(-m_BulletOffsetAmount,m_BulletOffsetAmount),
+										Random.Range(-m_BulletOffsetAmount,m_BulletOffsetAmount),
 										0f);
 			// Creates firing rays
-			Ray gun1_ray = new Ray(bullet_spawn_pos.position, bullet_spawn_pos.forward + bullet_offset);
-			Ray gun2_ray = new Ray(bullet_spawn_pos_2.position, bullet_spawn_pos_2.forward + bullet_offset);
+			Ray gun1_ray = new Ray(m_BulletSpawnPosLeft.position, m_BulletSpawnPosLeft.forward + bullet_offset);
+			Ray gun2_ray = new Ray(m_BulletSpawnPosRight.position, m_BulletSpawnPosRight.forward + bullet_offset);
 
-			bullet_line.enabled = true;
-			bullet_line_2.enabled = true;
+			m_BulletLineRend.enabled = true;
+			m_BulletLineRend_2.enabled = true;
 
-			bullet_line.SetPosition(0, bullet_spawn_pos.position);
-			bullet_line.SetPosition(1, bullet_spawn_pos.position + gun1_ray.direction.normalized * 100f );
-			bullet_line_2.SetPosition(0, bullet_spawn_pos_2.position);
-			bullet_line_2.SetPosition(1, bullet_spawn_pos_2.position + gun2_ray.direction.normalized * 100f );
+			m_BulletLineRend.SetPosition(0, m_BulletSpawnPosLeft.position);
+			m_BulletLineRend.SetPosition(1, m_BulletSpawnPosLeft.position + gun1_ray.direction.normalized * 100f );
+			m_BulletLineRend_2.SetPosition(0, m_BulletSpawnPosRight.position);
+			m_BulletLineRend_2.SetPosition(1, m_BulletSpawnPosRight.position + gun2_ray.direction.normalized * 100f );
 
 			// Shoots ray for each gun
 			Shoot_Bullet_Raycast(gun1_ray);
 			Shoot_Bullet_Raycast(gun2_ray);
 		
 			// Plays both muzzle flash effects
-			Muzzle_Flash_PS.Play();
-			Muzzle_Flash_PS_2.Play();
+			m_MuzzleFlashPS.Play();
+			m_MuzzleFlashPS_2.Play();
 
 			//Debug.DrawRay(gun1_ray.origin,gun1_ray.direction*1000f,Color.red);
 		}
@@ -285,7 +295,7 @@ public class Character : MonoBehaviour
 				}
 
 				// Instantiate impact effect and destroy after 1 second
-				GameObject hit_PS_instance = Instantiate(hit_PS, hit_.point,Quaternion.LookRotation(hit_.normal));
+				GameObject hit_PS_instance = Instantiate(m_HitPS, hit_.point,Quaternion.LookRotation(hit_.normal));
 				Destroy(hit_PS_instance,0.5f);
 			}
 		}
@@ -332,44 +342,45 @@ public class Character : MonoBehaviour
             if (m_Rigidbody != null)
             {
                 // Speed management
-                float speed = m_MovementSpeed;
+                current_speed = m_MovementSpeed;
 
                 if (_Dodge)
                 {
-                    speed = m_DodgeMovementSpeed;
+					current_speed = m_DodgeMovementSpeed;
                 }
 
                 if (_Sprint)
                 {
-                    speed *= m_SprintScale;
+					current_speed *= m_SprintScale;
                 }
 				else if(!_Dodge)
 				{
-					speed += increase_amount;
+					current_speed += increase_amount;
 				}
 
 				if(speed_increase > 0f)
 				{
-					if(increase_amount < max_increase_speed)
+					if(increase_amount < m_MaxIncreaseSpeed)
 					{
 						//speed += increase_scale;
-						increase_amount += speed_increase_scale;
+						increase_amount += m_SpeedIncreaseScale;
 					}
 				}
 				else if(speed_increase < 0f)
 				{
-					if(increase_amount > min_increase_speed)
+					if(increase_amount > m_MinIncreaseSpeed)
 					{
 						//speed -= increase_scale;
-						increase_amount -= speed_increase_scale;
+						increase_amount -= m_SpeedIncreaseScale;
 					}
 				}				
 				
-				UI_Speed.text = speed.ToString();
+				m_SpeedUIText.text = current_speed.ToString();
 
                 // Movement
+				// Using set velcotity as physics collision work better
                 //m_Rigidbody.MovePosition(m_Rigidbody.position + _Direction.normalized * Time.deltaTime * speed);
-				m_Rigidbody.velocity = new Vector3(_Direction.x * speed,_Direction.y * speed,  _Direction.z * speed);
+				m_Rigidbody.velocity = _Direction * current_speed;
 
             }
         }
@@ -423,13 +434,13 @@ public class Character : MonoBehaviour
         {
             // Check roll limit
             
-		if (m_RollLimit > 0)
-		{
-			if (!CheckRollLimit(_AdditiveRoll))
+			if (m_RollLimit > 0)
 			{
-				return;
+				if (!CheckRollLimit(_AdditiveRoll))
+				{
+					return;
+				}
 			}
-		}
             // Time based rotation
             if (!_Dodge)
             {
@@ -440,13 +451,11 @@ public class Character : MonoBehaviour
                 _AdditiveRoll *= Time.deltaTime * m_DodgeRollSpeed;
             }
 
-	
-
-
             // Add rotation
 			// Use transform.forward for plane controls
 			Quaternion rotator = Quaternion.AngleAxis(_AdditiveRoll, -transform.forward);
             transform.rotation = rotator * transform.rotation;
+			//transform.rotation = Quaternion.Lerp( transform.rotation, rotator,Time.deltaTime * m_RollRotationSpeed);
         }
 
         /// <summary>

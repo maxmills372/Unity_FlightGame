@@ -93,7 +93,7 @@ Transform:
   m_GameObject: {fileID: 1619731229785908}
   m_LocalRotation: {x: 0.5, y: 0.5, z: 0.5, w: 0.5}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 0.511379, y: 0.5113788, z: 0.5113788}
+  m_LocalScale: {x: 0.511379, y: 0.511379, z: 0.511379}
   m_Children: []
   m_Father: {fileID: 4258408642852130}
   m_RootOrder: 1
@@ -372,7 +372,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d28ed559a14573d469f6f50ff993d25b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  move_speed: 85
+  move_speed: 90
   rotate_speed: 200
   explosion_radius: 100
   explosion_force: 100
@@ -464,7 +464,7 @@ ParticleSystem:
   moveWithTransform: 1
   moveWithCustomTransform: {fileID: 0}
   scalingMode: 1
-  randomSeed: 42711938
+  randomSeed: 460822496
   InitialModule:
     serializedVersion: 3
     enabled: 1
@@ -3594,15 +3594,15 @@ ParticleSystem:
   moveWithTransform: 1
   moveWithCustomTransform: {fileID: 0}
   scalingMode: 1
-  randomSeed: 1988942328
+  randomSeed: 322074846
   InitialModule:
     serializedVersion: 3
     enabled: 1
     startLifetime:
       serializedVersion: 2
       minMaxState: 3
-      scalar: 2
-      minScalar: 1.5
+      scalar: 1.33
+      minScalar: 0.87
       maxCurve:
         serializedVersion: 2
         m_Curve:
@@ -3734,7 +3734,7 @@ ParticleSystem:
     startSize:
       serializedVersion: 2
       minMaxState: 3
-      scalar: 1.5
+      scalar: 1.19
       minScalar: 1
       maxCurve:
         serializedVersion: 2
@@ -4111,7 +4111,7 @@ ParticleSystem:
     rateOverDistance:
       serializedVersion: 2
       minMaxState: 0
-      scalar: 5
+      scalar: 4
       minScalar: 0
       maxCurve:
         serializedVersion: 2

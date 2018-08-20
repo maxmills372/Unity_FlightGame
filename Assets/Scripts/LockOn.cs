@@ -15,6 +15,8 @@ public class LockOn : MonoBehaviour {
 	public GameObject map_generator;
 	public GameObject player_object;
 
+	public bool is_locking_on = false;
+
 	// Use this for initialization
 	void Start () 
 	{
@@ -31,26 +33,45 @@ public class LockOn : MonoBehaviour {
 			lock_on_objects = GameObject.FindGameObjectsWithTag("Lockon");
 			stop_ = true;
 		}
-
-		targets.Clear();
-		if(visible_objects.Count != 0)
+	
+		if(is_locking_on)
 		{
-			for (int i = 0; i < target_spheres.Length; i++) 
-			{
-						
-				//FindTarget();
-				//target_spheres[i].transform.position = targets[i].transform.position;
-				targets.Add(FindTarget());
-				target_spheres[i].transform.position = targets[i].transform.position;
-			}
-
-		}
-		else{
+			// Clears target list
 			targets.Clear();
 
+			// If there are visible targets
+			if(visible_objects.Count != 0)
+			{
+				// For every target lockon sphere
+				for (int i = 0; i < target_spheres.Length; i++) 
+				{
+					// Find clostest target and add to list
+					targets.Add(FindTarget());
+
+					// If target still exists
+					if(targets[i] != null) 
+					{
+						// Enable and track target
+						target_spheres[i].SetActive(true);
+						target_spheres[i].transform.position = targets[i].transform.position;
+					}
+					else 
+					{
+						// Disable target
+						target_spheres[i].SetActive(false);
+					}
+				}
+
+			}
+			else
+			{		
+				// Clears target list
+				targets.Clear();
+			}
 		}
 
 	}
+
 	// Finds the closest target
 	GameObject FindTarget()
 	{

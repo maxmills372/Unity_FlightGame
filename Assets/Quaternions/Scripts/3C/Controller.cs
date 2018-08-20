@@ -19,12 +19,9 @@ public class Controller : MonoBehaviour
 		/*WALKING,
 		TAKEOFF,
 		LANDING*/
-
 	};
 
-
     #region Attributes
-
     // Character
     private Character               m_Character                 = null;
     
@@ -59,10 +56,15 @@ public class Controller : MonoBehaviour
     // Current camera
     private BaseCamera              m_CurrentCamera             = null;
 
-	public bool invert_Y_axis = true;
+	public bool m_InvertYAxis = true;
 	public bool m_LockMouse = true;
-	public float m_TimeBetweenRocketFire = 1f;
+	public float m_TimeBetweenRocketFire = 0.5f;
+	public float m_RocketFireDelay = 0.3f;
+
 	float rocket_timer = 0f;
+	float timer = 0f;
+	public float m_LockonHoldTime = 1.5f;
+	bool button_held = false;
 
     #endregion
 
@@ -89,7 +91,7 @@ public class Controller : MonoBehaviour
 
 	// Use this for checking input (apart from movement input)
 	void Update()
-	{
+	{		
 		// Check input for weapon actions
 		CheckWeaponInput();
 
@@ -101,6 +103,9 @@ public class Controller : MonoBehaviour
 			// Check input for other action buttons
 			CheckActionInput();
 		}
+
+		m_Character.Move(m_Character.transform.forward, Input.GetButton("Sprint"));
+
 	}
 
     // Called at fixed time
@@ -123,8 +128,10 @@ public class Controller : MonoBehaviour
 		            // Check camera inputs
 		            CheckCameraInput();
 
-		            // Move character (in fixed update to avoid camera lerp break)
-		            m_Character.Move(m_Character.transform.forward, Input.GetButton("Sprint"));
+					// Move character (in fixed update to avoid camera lerp break)
+					// Dont need to do this here anymore
+					//m_Character.Move(m_Character.transform.forward, Input.GetButton("Sprint"));
+				
 					break;
 				}
 			case FlightModes.FALL:
@@ -225,11 +232,10 @@ public class Controller : MonoBehaviour
 		}
     }
 
-	/// <summary>
 	/// Checks the weapon input
-	/// </summary>
 	private void CheckWeaponInput()
 	{
+		/// Machine Guns
 		if(Input.GetButton("Shoot"))
 		{
 			m_Character.MachineGunShoot();
@@ -237,20 +243,41 @@ public class Controller : MonoBehaviour
 		}
 		else
 		{
-			m_Character.bullet_line.enabled = false;
-			m_Character.bullet_line_2.enabled = false;
+			m_Character.m_BulletLineRend.enabled = false;
+			m_Character.m_BulletLineRend_2.enabled = false;
 		}
 
-		rocket_timer += Time.time / 60f;
-		if(Input.GetButton("RocketShoot") && rocket_timer > m_TimeBetweenRocketFire)
+		/// Rockets
+		rocket_timer += Time.deltaTime;
+
+		if(Input.GetButton("RocketShoot") )
 		{
-			m_Character.RocketShoot(null);
+			button_held = true;
+			timer += Time.deltaTime;
+			if( timer > m_LockonHoldTime)
+			{
+				//m_Character.TrackClosestTargets();
+				print("HEllo there");
+
+			}
+		}
+		if (Input.GetButtonUp("RocketShoot"))
+		{
+			timer = 0f;
+			button_held = false;
+		}
+		if(Input.GetButtonUp("RocketShoot") && rocket_timer > m_TimeBetweenRocketFire && !button_held)
+		{
+			// Shoot stright rocket twice with delay on the 2nd one
+			m_Character.RocketShoot(null, true);
+			//m_Character.RocketShoot(null, false);
+
+			StartCoroutine("Rocket_Shoot_Delay");
+
+			// Reset timer
 			rocket_timer = 0f;
-		}
+			button_held = false;
 
-		if(Input.GetButtonDown("RocketShoot"))
-		{
-			//m_Character.TrackClosestTargets();
 		}
 
 	}
@@ -276,7 +303,7 @@ public class Controller : MonoBehaviour
         if (pitchAxis != 0)
         {
 			// Invert pitch
-			if(invert_Y_axis)
+			if(m_InvertYAxis)
 	            m_Character.AddPitch(pitchAxis);
 			else
 				m_Character.AddPitch(-pitchAxis);		
@@ -359,6 +386,13 @@ public class Controller : MonoBehaviour
 
 		}
     }
+
+	IEnumerator Rocket_Shoot_Delay()
+	{
+		yield return new WaitForSeconds(m_RocketFireDelay);
+		m_Character.RocketShoot(null,false);
+		yield return null;
+	}
 
 #endregion
 }
