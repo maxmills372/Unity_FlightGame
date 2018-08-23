@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 3347056}
   - component: {fileID: 6574768}
   - component: {fileID: 2319570}
-  - component: {fileID: 54521792445249082}
+  - component: {fileID: 114829501554710754}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Lockon
@@ -110,18 +110,30 @@ Prefab:
   m_ParentPrefab: {fileID: 0}
   m_RootGameObject: {fileID: 198968}
   m_IsPrefabParent: 1
---- !u!54 &54521792445249082
-Rigidbody:
+--- !u!114 &114829501554710754
+MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 198968}
-  serializedVersion: 2
-  m_Mass: 1
-  m_Drag: 0
-  m_AngularDrag: 0.05
-  m_UseGravity: 0
-  m_IsKinematic: 0
-  m_Interpolate: 0
-  m_Constraints: 0
-  m_CollisionDetection: 0
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 5cdc27ed9f19c034f89bd17976aff700, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  resolution: 5
+  region_amount: 10
+  all_ya: 0
+  create_grid: 0
+  voronoi_break: 0
+  combine_meshes: 0
+  give_rigidbodies: 0
+  reset_object: 0
+  test_cube: {fileID: 1363450017575970, guid: 18e637ab5e22e144daf17e4076a73c40, type: 2}
+  test_sphere: {fileID: 1362263899151926, guid: fdbc03e82d27a054db9a5516937061ef,
+    type: 2}
+  grid_parent: {fileID: 1353767249096122, guid: 0f3f49777f5c4c2438f611feb4dda45c,
+    type: 2}
+  rigidbody_clone: {fileID: 54337059472993318, guid: 730a9158d364f3942a2fb3b3cf827cf0,
+    type: 2}
+  regions: []

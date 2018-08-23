@@ -56,12 +56,17 @@ public class Controller : MonoBehaviour
     // Current camera
     private BaseCamera              m_CurrentCamera             = null;
 
+	public LockOn m_LockOnTracker;
 	public bool m_InvertYAxis = true;
 	public bool m_LockMouse = true;
+	public float m_XSensitivity = 5f;
+	public float m_YSensitivity = 5f;
+
+	public float m_TimeBetweenTurretFire = 0.1f;
 	public float m_TimeBetweenRocketFire = 0.5f;
 	public float m_RocketFireDelay = 0.3f;
 
-	float rocket_timer = 0f;
+	float rocket_timer, turret_timer;
 	float timer = 0f;
 	public float m_LockonHoldTime = 1.5f;
 	bool button_held = false;
@@ -236,10 +241,13 @@ public class Controller : MonoBehaviour
 	private void CheckWeaponInput()
 	{
 		/// Machine Guns
-		if(Input.GetButton("Shoot"))
-		{
+		if(Input.GetButton("Shoot") && turret_timer > m_TimeBetweenTurretFire)
+		{		
+			m_Character.m_BulletLineRend.enabled = true;
+			m_Character.m_BulletLineRend_2.enabled = true;
 			m_Character.MachineGunShoot();
-
+			turret_timer = 0f;
+			print("BANG");
 		}
 		else
 		{
@@ -249,6 +257,7 @@ public class Controller : MonoBehaviour
 
 		/// Rockets
 		rocket_timer += Time.deltaTime;
+		turret_timer += Time.deltaTime;
 
 		if(Input.GetButton("RocketShoot") )
 		{
@@ -257,27 +266,52 @@ public class Controller : MonoBehaviour
 			if( timer > m_LockonHoldTime)
 			{
 				//m_Character.TrackClosestTargets();
-				print("HEllo there");
+				m_LockOnTracker.is_locking_on = true;
+
+
+			}
+			else{
+				button_held = false;
 
 			}
 		}
+		if(Input.GetButtonUp("RocketShoot") && rocket_timer > m_TimeBetweenRocketFire )
+		{
+			if(!button_held)
+			{
+				// Shoot stright rocket twice with delay on the 2nd one
+				m_Character.RocketShoot(null, true);
+				//m_Character.RocketShoot(null, false);
+
+				StartCoroutine("Rocket_Shoot_Delay");
+
+				// Reset timer
+				rocket_timer = 0f;
+				button_held = false;
+			}
+			else
+			{
+				timer = 0f;
+				button_held = false;
+				for (int i = 0; i < m_LockOnTracker.targets.Count; i++) 
+				{
+					m_Character.RocketShoot(m_LockOnTracker.targets[i].transform,true);
+					print("FIRE! " + i);
+
+				}
+
+				m_LockOnTracker.is_locking_on = false;
+
+
+
+			}
+
+		}
+
 		if (Input.GetButtonUp("RocketShoot"))
 		{
 			timer = 0f;
 			button_held = false;
-		}
-		if(Input.GetButtonUp("RocketShoot") && rocket_timer > m_TimeBetweenRocketFire && !button_held)
-		{
-			// Shoot stright rocket twice with delay on the 2nd one
-			m_Character.RocketShoot(null, true);
-			//m_Character.RocketShoot(null, false);
-
-			StartCoroutine("Rocket_Shoot_Delay");
-
-			// Reset timer
-			rocket_timer = 0f;
-			button_held = false;
-
 		}
 
 	}
@@ -290,8 +324,8 @@ public class Controller : MonoBehaviour
 		float throttleAxis = Input.GetAxis("Throttle");
         float rudderAxis = Input.GetAxis("Rudder");
 
-		float pitchAxis = Input.GetAxis("MouseY");
-		float rollAxis = Input.GetAxis("MouseX");
+		float pitchAxis = Input.GetAxis("MouseY") * m_YSensitivity;
+		float rollAxis = Input.GetAxis("MouseX") * m_XSensitivity;
 
 		if(m_LockMouse)
 		{
@@ -312,7 +346,7 @@ public class Controller : MonoBehaviour
         // Roll
         if (rollAxis != 0)
         {
-            m_Character.AddRoll(rollAxis);
+			m_Character.AddRoll(rollAxis);
         }
 
 

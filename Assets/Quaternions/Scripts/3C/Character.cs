@@ -38,7 +38,7 @@ public class Character : MonoBehaviour
 	public LineRenderer		m_BulletLineRend, m_BulletLineRend_2;
 	public Text 			m_SpeedUIText;
 	public GameObject		m_RocketPrefab;
-
+	public GameObject raycasthit_cube;
 	#endregion     
 
 	#region PrivateVariables
@@ -56,6 +56,8 @@ public class Character : MonoBehaviour
 	Transform current_target;
 	Transform[] current_targets = new Transform[6];
 	Transform rocket_target;
+	Ray ray;
+	//Quaternion m_CharacterTargetRot,m_CharacterTargetRot2;
 
     #endregion
 
@@ -76,14 +78,14 @@ public class Character : MonoBehaviour
             }
 
 			targets = GameObject.FindGameObjectsWithTag("Player");
-
-
+			//m_CharacterTargetRot = transform.localRotation;
+			//m_CharacterTargetRot2= transform.localRotation;
         }
 
         // Called at fixed time
         void FixedUpdate()
         {
-            // Update yaw from roll angle. Writtent in fixed update to avoid camera lerp break
+            // Update yaw from roll angle. Written in fixed update to avoid camera lerp break
             UpdateYawFromRoll();
 
 			if (Input.GetButtonUp("Fall"))
@@ -98,6 +100,11 @@ public class Character : MonoBehaviour
 			}
 
         }
+
+		void Update()
+		{
+
+		}
 
         // On collision enter
         void OnCollisionEnter(Collision collision)
@@ -198,56 +205,14 @@ public class Character : MonoBehaviour
 			}
 			else
 			{
+				GameObject rocket = Instantiate(m_RocketPrefab,rocket_spawn_pos,Quaternion.LookRotation(transform.forward));
 
+				rocket.GetComponent<homing_missile>().CurrentRocketType = homing_missile.RocketType.Target_Pathfind;
+				rocket.GetComponent<homing_missile>().target = target;
 			}
 
-		}
+		}		
 
-		/// <summary>
-		/// Tracks the closest targets
-		/// </summary>
-		public void TrackClosestTarget()
-		{
-			float current_min = 100000.0f;
-
-
-			foreach(GameObject g in targets)
-			{
-				float distance = Vector3.Distance(g.transform.position, transform.position);
-				if(distance < current_min)
-				{
-					current_min = distance;
-					current_target = g.transform;
-				}
-			}
-
-			rocket_target = current_target;
-		}
-
-	//TODO
-	// Have this called 6 times, every time ignoring the closest target found before
-	public Transform TrackClosestTargets(int count)
-	{
-		float current_min = 100000.0f;
-
-		foreach(GameObject g in targets)
-		{
-			if(count == 6)
-				break;
-			
-			float distance = Vector3.Distance(g.transform.position, transform.position);
-			if(distance < current_min)
-			{
-				current_min = distance;
-				current_targets[count] = g.transform;
-				count++;
-			}
-		}
-		return current_target;
-
-		//rocket_targets = current_targets;
-
-	}
 		/// <summary>
 		/// Machines the gun shoot. (lol wtf)
 		/// </summary>
@@ -261,8 +226,7 @@ public class Character : MonoBehaviour
 			Ray gun1_ray = new Ray(m_BulletSpawnPosLeft.position, m_BulletSpawnPosLeft.forward + bullet_offset);
 			Ray gun2_ray = new Ray(m_BulletSpawnPosRight.position, m_BulletSpawnPosRight.forward + bullet_offset);
 
-			m_BulletLineRend.enabled = true;
-			m_BulletLineRend_2.enabled = true;
+	
 
 			m_BulletLineRend.SetPosition(0, m_BulletSpawnPosLeft.position);
 			m_BulletLineRend.SetPosition(1, m_BulletSpawnPosLeft.position + gun1_ray.direction.normalized * 100f );
@@ -445,6 +409,7 @@ public class Character : MonoBehaviour
             if (!_Dodge)
             {
 				_AdditiveRoll *= Time.deltaTime * m_RollRotationSpeed;
+				//m_CharacterTargetRot *= Quaternion.Euler(m_CharacterTargetRot.x,_AdditiveRoll,m_CharacterTargetRot.z);
             }
             else
             {
@@ -455,13 +420,14 @@ public class Character : MonoBehaviour
 			// Use transform.forward for plane controls
 			Quaternion rotator = Quaternion.AngleAxis(_AdditiveRoll, -transform.forward);
             transform.rotation = rotator * transform.rotation;
-			//transform.rotation = Quaternion.Lerp( transform.rotation, rotator,Time.deltaTime * m_RollRotationSpeed);
+
+			//transform.localRotation = Quaternion.Slerp(transform.localRotation, m_CharacterTargetRot,Time.deltaTime * 18f);
         }
 
         /// <summary>
         /// Add pitch to character rotation
         /// </summary>
-        public void AddPitch(float _AdditivePitch)
+		public void AddPitch(float _AdditivePitch)
         {
             // Check pitch limit
             /*
@@ -472,6 +438,7 @@ public class Character : MonoBehaviour
                     return;
                 }
             }*/
+		//m_CharacterTargetRot2 *= Quaternion.Euler(_AdditivePitch,transform.eulerAngles.y,transform.eulerAngles.z);
 
             // Time based rotation
 			_AdditivePitch *= Time.deltaTime * m_PitchRotationSpeed;
@@ -479,6 +446,9 @@ public class Character : MonoBehaviour
             // Add rotation
             Quaternion rotator = Quaternion.AngleAxis(_AdditivePitch, transform.right);
             transform.rotation = rotator * transform.rotation;
+
+		//transform.localRotation = Quaternion.Slerp(transform.localRotation, m_CharacterTargetRot2,Time.deltaTime * m_PitchRotationSpeed);
+
         }
 
 		/// <summary>
@@ -517,7 +487,7 @@ public class Character : MonoBehaviour
             m_IsDodging = true;
 
             // Get old right local axis
-		Vector3 oldRight = transform.right * 10f;
+			Vector3 oldRight = transform.right;
 
             // Wait entire roll
             while (Mathf.Abs(sumInput) < 360)

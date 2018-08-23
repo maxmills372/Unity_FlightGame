@@ -31,15 +31,17 @@ public class GridGenerator : MonoBehaviour
 
 	void Update()
 	{
-		if(map_generated_)
+		/*if(map_generated_)
 		{
-			/*foreach(GameObject g in cubes_)
+			foreach(GameObject g in cubes_)
 			{
-				g.transform.position += new Vector3(Random.Range(0.5f,5.0f),Random.Range(0.5f,5.0f),Random.Range(0.5f,2.0f));
-				g.transform.position -= new Vector3(Random.Range(0.5f,5.0f),Random.Range(0.5f,5.0f),Random.Range(0.5f,2.0f));
+				//g.transform.position += new Vector3(Random.Range(0.5f,5.0f),Random.Range(0.5f,5.0f),Random.Range(0.5f,2.0f));
+				//g.transform.position -= new Vector3(Random.Range(0.5f,5.0f),Random.Range(0.5f,5.0f),Random.Range(0.5f,2.0f));
+				g.SendMessage("CreateGrid");
+			}	
 
-			}	*/
-		}
+			map_generated_ = false;
+		}*/
 	}
 
     /// Generate a grid of prefab instances
@@ -55,6 +57,7 @@ public class GridGenerator : MonoBehaviour
                     {
                         GameObject obj = GameObject.Instantiate(m_PrefabToSpawn, transform.position + new Vector3(i * m_SpaceBetweenObjects, j * m_SpaceBetweenObjects, k * m_SpaceBetweenObjects), Quaternion.identity) as GameObject;
                         obj.transform.parent = transform.parent;
+
 						cubes_.Add(obj);
                     }
                 }

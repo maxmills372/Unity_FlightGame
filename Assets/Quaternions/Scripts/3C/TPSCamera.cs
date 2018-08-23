@@ -40,7 +40,7 @@ public class TPSCamera : BaseCamera
 
                 // Update position based on offset
                 Vector3 desiredPosition = m_Character.transform.position + localOffset;
-                transform.position = Vector3.Lerp(transform.position, desiredPosition, Time.fixedDeltaTime * m_LerpFactor);
+                transform.position = Vector3.Slerp(transform.position, desiredPosition, Time.fixedDeltaTime * m_LerpFactor);
 
                 // Follow character rotation depending on dodge action
                 if (!m_Character.IsDodging)

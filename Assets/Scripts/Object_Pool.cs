@@ -72,7 +72,7 @@ public class Object_Pool : MonoBehaviour {
 
 		object_to_spawn.transform.position = position;
 		object_to_spawn.transform.rotation = rotation;
-		object_to_spawn.transform.parent = parent;
+		//object_to_spawn.transform.parent = parent;
 
 		pool_dictionary[tag].Enqueue(object_to_spawn); 
 

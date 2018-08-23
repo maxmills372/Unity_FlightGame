@@ -372,8 +372,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d28ed559a14573d469f6f50ff993d25b, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  move_speed: 90
-  rotate_speed: 200
+  move_speed: 60
+  rotate_speed: 360
   explosion_radius: 100
   explosion_force: 100
   no_target_explode_time: 5
@@ -394,7 +394,8 @@ MonoBehaviour:
   ray_offset: 2.99
   rotatation_damp: 0.35
   turn_speed: 37.4
-  target_tag: Player
+  target_tag: Lockon
+  draw_debug_lines: 0
   ray_offset_angle_X: {x: 0, y: 0, z: 0}
   ray_offset_angle_Y: {x: 0, y: 0, z: 0}
   CurrentRocketType: 2

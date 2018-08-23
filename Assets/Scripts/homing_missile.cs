@@ -34,7 +34,8 @@ public class homing_missile : MonoBehaviour {
 	public float ray_offset = 2.5f;
 	public float rotatation_damp = .5f;
 	public float turn_speed = 20f;
-	public string target_tag = "Player";
+	public string target_tag = "Lockon";
+	public bool draw_debug_lines = false;
 
 	public Vector3 ray_offset_angle_X = Vector3.zero;
 	public Vector3 ray_offset_angle_Y = Vector3.zero;
@@ -165,11 +166,14 @@ public class homing_missile : MonoBehaviour {
 		// If not hitting an object with this Layer
 		if(col.gameObject.layer != LayerMask.NameToLayer("Ignore Raycast"))
 		{
-			print("HIT: " + col.name);
+			//print("HIT: " + col.name);
+
+			// Voronoi break effect
+			if(col.GetComponent<Voronoi_Test>())
+				col.GetComponent<Voronoi_Test>().all_ya = true;
 
 			// #Boom
 			Explode();
-
 		}
 	}
 	public void Explode()
@@ -288,11 +292,14 @@ public class homing_missile : MonoBehaviour {
 			StopCoroutine("ExplodeAfterTime");
 
 
-		Debug.DrawRay(left ,(transform.forward - ray_offset_angle_X) * ray_dist , Color.red);
-		Debug.DrawRay(right ,(transform.forward + ray_offset_angle_X)  * ray_dist,Color.red);
-		Debug.DrawRay(up,(transform.forward  + ray_offset_angle_Y)  * ray_dist,Color.green);
-		Debug.DrawRay(down,(transform.forward  - ray_offset_angle_Y)  * ray_dist,Color.green);
-		Debug.DrawRay(forward,transform.forward * ray_dist,Color.cyan);
+		if(draw_debug_lines)
+		{
+			Debug.DrawRay(left ,(transform.forward - ray_offset_angle_X) * ray_dist , Color.red);
+			Debug.DrawRay(right ,(transform.forward + ray_offset_angle_X)  * ray_dist,Color.red);
+			Debug.DrawRay(up,(transform.forward  + ray_offset_angle_Y)  * ray_dist,Color.green);
+			Debug.DrawRay(down,(transform.forward  - ray_offset_angle_Y)  * ray_dist,Color.green);
+			Debug.DrawRay(forward,transform.forward * ray_dist,Color.cyan);
+		}
 	}
 
 	public void ExplodeForceFromHere()

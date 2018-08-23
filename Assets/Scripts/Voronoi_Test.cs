@@ -89,11 +89,11 @@ public class Voronoi_Test : MonoBehaviour
 	}
 	void OnCollisionEnter(Collision collider)
 	{
-		if(collider.relativeVelocity.magnitude > 10.0f)
+		/*if(collider.relativeVelocity.magnitude > 10.0f)
 		{
 			voronoi_break = true;
-			print("HIT");
-		}
+			//print("HIT");
+		}*/
 	}
 	IEnumerator BreakObject()
 	{
