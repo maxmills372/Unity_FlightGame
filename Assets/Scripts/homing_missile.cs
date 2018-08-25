@@ -4,43 +4,7 @@ using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
 public class homing_missile : MonoBehaviour {
-
-	public float move_speed = 10.0f;
-	public float rotate_speed = 200.0f;
-	public float explosion_radius = 100f;
-	public float explosion_force = 100f;
-	public float no_target_explode_time = 5f;
-
-	public GameObject explodePS;
-	public Transform target;
-	public GameObject[] targets = new GameObject[10];
-
-	Transform current_target;
-	Rigidbody rb;
-	homing_missile Homing_Missile_Script;
-	MeshRenderer mesh_renderer;
-	Vector3 direction;
-	Vector3 rotate_amount;
-	float timer;
-
-	// Pathfinding variables
-	Vector3 left, right, up, down,forward;
-	Vector3 rotation_offset;
-
-	float turn_angle = 0.5f;
-	Vector3 offset;
-	Vector3 ray_direction;
-	public float ray_dist = 20f;
-	public float ray_offset = 2.5f;
-	public float rotatation_damp = .5f;
-	public float turn_speed = 20f;
-	public string target_tag = "Lockon";
-	public bool draw_debug_lines = false;
-
-	public Vector3 ray_offset_angle_X = Vector3.zero;
-	public Vector3 ray_offset_angle_Y = Vector3.zero;
-	Vector3 original_target_pos; 
-
+	
 	[System.Serializable]
 	public enum RocketType
 	{
@@ -53,12 +17,55 @@ public class homing_missile : MonoBehaviour {
 	};
 	public RocketType CurrentRocketType;
 
+	[Header("Attributes")]
+
+	public float move_speed = 60.0f;
+	public float rotate_speed = 360.0f;
+	public float explosion_radius = 100f;
+	public float explosion_force = 100f;
+	public float no_target_explode_time = 5f;
+
+	public GameObject explodePS;
+	public Transform target;
+	public GameObject[] targets = new GameObject[10];
+
+
+	[Header("Pathfinding")]
+
+	public float ray_dist = 20f;
+	public float ray_offset = 2.5f;
+	public float rotatation_damp = .5f;
+	public float turn_speed = 20f;
+	public string target_tag = "Lockon";
+	public bool draw_debug_lines = false;
+
+	public Vector3 ray_offset_angle_X = Vector3.zero;
+	public Vector3 ray_offset_angle_Y = Vector3.zero;
+
+	Vector3 original_target_pos; 
+
+	Transform current_target;
+	Rigidbody rb;
+	homing_missile Homing_Missile_Script;
+	MeshRenderer mesh_renderer;
+	Vector3 direction;
+	Vector3 rotate_amount;
+	float timer;
+
+	Vector3 left, right, up, down,forward;
+	Vector3 rotation_offset;
+	float turn_angle = 0.5f;
+	Vector3 offset;
+	Vector3 ray_direction;
+
+
 	// Use this for initialization
 	void Start () 
 	{
 		// This could be done in update and could also find the closest
-		targets = GameObject.FindGameObjectsWithTag("Player");
+		targets = GameObject.FindGameObjectsWithTag(target_tag);
 
+		// Get compenents
 		rb = GetComponent<Rigidbody>();
 		Homing_Missile_Script = GetComponent<homing_missile>();
 		mesh_renderer = GetComponent<MeshRenderer>();
@@ -72,40 +79,46 @@ public class homing_missile : MonoBehaviour {
 	{
 		switch (CurrentRocketType)
 		{
-
 		case RocketType.Closest:
+			// Finds the closest target
 			FindTarget();
+
+			// Rotates towards target
 			TrackTarget();
 			break;
 
-		case RocketType.Target:
-			
-			//SetTarget();
-			// Set target first!!!
+		case RocketType.Target:			
 
+			// Remember to set target first!
+			// Rotates towards target
 			TrackTarget();
 			break;
 
 		case RocketType.Target_Pathfind:
 			
-			// Uses target passed in for now
-			// target = ...
-
+			// Remember to set target first!
+			// Navigates to target
 			Pathfinding();
-
-			//PathfindToTarget();
-			//TrackTarget();
 
 			break;
+
 		case RocketType.Closest_Pathfind:
+			
+			// Finds closest target
 			FindTarget();
+
+			// Navigates to target
 			Pathfinding();
+
 			break;
 		case RocketType.Straight:
+			
+			// Move in straight line, exploding if nothing in front of it
 			MoveForward();
 			break;
 
 		case RocketType.Null:
+			
 			print("Rocket type not set");
 			break;
 		default: 
@@ -144,7 +157,19 @@ public class homing_missile : MonoBehaviour {
 
 		rb.angularVelocity = Vector3.zero;
 
-		StartCoroutine("ExplodeAfterTime", 5f);
+		// Create forward ray
+		forward = transform.position + transform.forward;
+
+		// If nothing is hit ahead of rocket, explode after 5 secs
+		RaycastHit hit;
+		if(!Physics.Raycast(forward, transform.forward, out hit, 1000f))
+		{
+			StartCoroutine("ExplodeAfterTime", 5f);
+		}
+		else
+		{
+			StopCoroutine("ExplodeAfterTime");
+		}
 
 	}
 	void TrackTarget()
@@ -200,6 +225,7 @@ public class homing_missile : MonoBehaviour {
 	{
 		rotation_offset = Vector3.zero;
 
+		// Directional ray positions
 		left = transform.position - transform.right * ray_offset;
 		right = transform.position + transform.right * ray_offset;
 		up = transform.position + transform.up * ray_offset;
@@ -207,11 +233,13 @@ public class homing_missile : MonoBehaviour {
 
 		forward = transform.position + transform.forward;
 
+		// If LEFT or RIGHT side raycasts are hit by an object
 		RaycastHit hit;
-		//LEFT + RIGHT
+	
 		if(Physics.Raycast(left, transform.forward - ray_offset_angle_X, out hit, ray_dist))
 		{
-			if(hit.collider.tag != target_tag)
+			// Move in opposite direction if object is not the target
+			if(hit.collider.gameObject != target.gameObject)
 				rotation_offset += Vector3.up;
 
 			/*if(Physics.Raycast(right, transform.forward + ray_offset_angle_X, out hit, ray_dist))	
@@ -222,17 +250,19 @@ public class homing_missile : MonoBehaviour {
 		}
 		else if(Physics.Raycast(right, transform.forward + ray_offset_angle_X, out hit, ray_dist))
 		{
-			if(hit.collider.tag != target_tag)
+			// Move in opposite direction if object is not the target
+			if(hit.collider.gameObject != target.gameObject)				
 				rotation_offset -= Vector3.up;
 		}
 
-		// Check UP
+		// If UP or DOWN side raycasts are hit by an object
 		if(Physics.Raycast(up, transform.forward + ray_offset_angle_Y, out hit, ray_dist))
 		{
-			if(hit.collider.tag != target_tag)
+			// Move in opposite direction if object is not the target
+			if(hit.collider.gameObject != target.gameObject)				
 				rotation_offset += Vector3.right;
 
-			// Check UP + DOWN
+			// Check 
 			/*if(Physics.Raycast(down, transform.forward - ray_offset_angle_Y, out hit, ray_dist))	
 			{
 				// Expand search
@@ -240,18 +270,19 @@ public class homing_missile : MonoBehaviour {
 					ray_offset_angle_Y.y += 0.5f;
 
 			}*/
-		}// Check DOWN
+
+		}
 		else if(Physics.Raycast(down, transform.forward - ray_offset_angle_Y, out hit, ray_dist))
 		{
-			if(hit.collider.tag != target_tag)				
+			// Move in opposite direction if object is not the target
+			if(hit.collider.gameObject != target.gameObject)				
 				rotation_offset -= Vector3.right;
 		}
 
-		// If offset has been set
+		// If movement offset has been set
 		if(rotation_offset != Vector3.zero)
 		{
-			// Apply rotation to avoid obstacles
-
+			// Apply that rotation to avoid obstacles
 			transform.Rotate(rotation_offset * turn_speed * Time.deltaTime);
 
 		}
@@ -275,6 +306,7 @@ public class homing_missile : MonoBehaviour {
 				rb.angularVelocity = -rotate_amount * rotate_speed * Time.deltaTime;
 
 			}
+
 			// Reset ray angle offset
 			ray_offset_angle_X = Vector3.zero;
 			ray_offset_angle_Y = Vector3.zero;
