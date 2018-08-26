@@ -37,6 +37,9 @@ namespace UnityStandardAssets.Utility
 
         private void Update()
         {
+			GetComponent<Rigidbody>().velocity = transform.forward * 100f;// * Time.deltaTime;
+
+
             // we make initial calculations from the original local rotation
             transform.localRotation = m_OriginalRotation;
 
@@ -45,8 +48,8 @@ namespace UnityStandardAssets.Utility
             float inputV;
             if (relative)
             {
-                inputH = CrossPlatformInputManager.GetAxis("Mouse X");
-                inputV = CrossPlatformInputManager.GetAxis("Mouse Y");
+                inputH = CrossPlatformInputManager.GetAxis("MouseX");
+                inputV = CrossPlatformInputManager.GetAxis("MouseY");
 
                 // wrap values to avoid springing quickly the wrong way from positive to negative
                 if (m_TargetAngles.y > 180)
@@ -104,7 +107,7 @@ namespace UnityStandardAssets.Utility
             }
 
             // smoothly interpolate current values to target angles
-            m_FollowAngles = Vector3.SmoothDamp(m_FollowAngles, m_TargetAngles, ref m_FollowVelocity, dampingTime);
+			m_FollowAngles = Vector3.SmoothDamp(m_FollowAngles, m_TargetAngles, ref m_FollowVelocity, dampingTime);
 
             // update the actual gameobject's rotation
             transform.localRotation = m_OriginalRotation*Quaternion.Euler(-m_FollowAngles.x, m_FollowAngles.y, 0);

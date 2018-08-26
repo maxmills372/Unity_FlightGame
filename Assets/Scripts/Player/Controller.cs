@@ -70,6 +70,7 @@ public class Controller : MonoBehaviour
 	float timer = 0f;
 	public float m_LockonHoldTime = 1.5f;
 	bool button_held = false;
+	bool air_brake_enabled = false;
 
     #endregion
 
@@ -109,7 +110,8 @@ public class Controller : MonoBehaviour
 			CheckActionInput();
 		}
 
-		m_Character.Move(m_Character.transform.forward, Input.GetButton("Sprint"));
+		if(!air_brake_enabled)
+			m_Character.Move(m_Character.transform.forward, Input.GetButton("Sprint"));
 
 	}
 
@@ -125,7 +127,7 @@ public class Controller : MonoBehaviour
 				{
 		            if (!m_Character.IsDodging)
 		            {
-		                //CheckMovementInput();
+		               //CheckMovementInput();
 		            }
 
 					// Written in fixed update to avoid camera lerp break
@@ -224,9 +226,11 @@ public class Controller : MonoBehaviour
             }
         }
 
-		if (Input.GetButtonDown("AirBrake"))
+		if (Input.GetButton("AirBrake"))
 		{
 			print("AIRBRAKE");
+			air_brake_enabled = true;
+			m_Character.Airbrake();
 
 			//m_CurrentCamera.SetTurnView(true);
 			//m_Character.m_DodgeRollSpeed += 100;
@@ -234,6 +238,11 @@ public class Controller : MonoBehaviour
 
 			//m_Character.m_DodgeRollSpeed -= 100;
 
+		}
+		if (Input.GetButtonUp("AirBrake"))
+		{
+			air_brake_enabled = false;
+			m_Character.Airbrake_Reset();
 		}
     }
 
@@ -301,11 +310,7 @@ public class Controller : MonoBehaviour
 				}
 
 				m_LockOnTracker.is_locking_on = false;
-
-
-
 			}
-
 		}
 
 		if (Input.GetButtonUp("RocketShoot"))
@@ -332,6 +337,7 @@ public class Controller : MonoBehaviour
 			Cursor.lockState = CursorLockMode.Locked;
 			Cursor.visible = false;
 		}
+
 
         // Pitch
         if (pitchAxis != 0)

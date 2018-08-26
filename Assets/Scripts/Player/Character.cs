@@ -28,7 +28,7 @@ public class Character : MonoBehaviour
 	public float 		m_MaxIncreaseSpeed 		= 20f;
 	public float		m_MinIncreaseSpeed		= -20f;
 	public float 		m_SpeedIncreaseScale 	= 0.1f;
-
+	public float brake_speed = 10f;
 
 	[Header("Unity Gameobjects")]
 	public Transform 		m_BulletSpawnPosLeft;
@@ -51,13 +51,25 @@ public class Character : MonoBehaviour
 	float speed_increase = 0f;
 	float increase_amount = 0f;
 	float current_speed;
+	public float brake_timer;
 
 	GameObject[] targets = new GameObject[100];
 	Transform current_target;
 	Transform[] current_targets = new Transform[6];
 	Transform rocket_target;
 	Ray ray;
-	//Quaternion m_CharacterTargetRot,m_CharacterTargetRot2;
+
+	// Rotate test 
+	public Vector2 rotationRange = new Vector3(70, 70);
+	public float rotationSpeed = 10;
+	public float dampingTime = 0.2f;
+	public bool autoZeroVerticalOnMobile = true;
+	public bool autoZeroHorizontalOnMobile = false;
+	public bool relative = true;
+	private Vector3 m_TargetAngles;
+	private Vector3 m_FollowAngles;
+	private Vector3 m_FollowVelocity;
+	private Quaternion m_OriginalRotation;
 
     #endregion
 
@@ -80,6 +92,8 @@ public class Character : MonoBehaviour
 			targets = GameObject.FindGameObjectsWithTag("Player");
 			//m_CharacterTargetRot = transform.localRotation;
 			//m_CharacterTargetRot2= transform.localRotation;
+
+		m_OriginalRotation = transform.rotation;
         }
 
         // Called at fixed time
@@ -103,7 +117,10 @@ public class Character : MonoBehaviour
 
 		void Update()
 		{
+			m_SpeedUIText.text =  m_Rigidbody.velocity.magnitude.ToString();
 
+			// we make initial calculations from the original local rotation
+			//transform.rotation = m_OriginalRotation;
 		}
 
         // On collision enter
@@ -244,6 +261,9 @@ public class Character : MonoBehaviour
 			//Debug.DrawRay(gun1_ray.origin,gun1_ray.direction*1000f,Color.red);
 		}
 
+		/// <summary>
+		/// Shoots the bullet raycast.
+		/// </summary>
 		void Shoot_Bullet_Raycast(Ray ray_to_shoot)
 		{
 			RaycastHit hit_;
@@ -276,6 +296,34 @@ public class Character : MonoBehaviour
 			else
 				speed_increase = 0f;
 		}
+
+		/// <summary>
+		/// Handbrake type air brake
+		/// </summary>
+		public void Airbrake()
+		{		
+			brake_timer += Time.deltaTime;
+			m_Rigidbody.velocity = Vector3.Lerp( m_Rigidbody.velocity, Vector3.zero,brake_timer/ brake_speed); //_Direction * current_speed;
+
+			//print(m_Rigidbody.velocity.magnitude);
+
+			// Falling
+			m_Rigidbody.useGravity = true;
+
+
+			// Stop boost view
+			if (m_Camera != null)
+			{
+				m_Camera.SetBoostView(false);
+			}
+		}
+
+		public void Airbrake_Reset()
+		{
+			brake_timer = 0f;
+			m_Rigidbody.useGravity = false;
+		}
+
         /// <summary>
         /// Start coroutine responsible of dodge
         /// </summary>
@@ -290,6 +338,7 @@ public class Character : MonoBehaviour
                     ((TPSCamera)m_Camera).OnCharacterDodge();
                 }
             }
+
 
             // Start dodge
             StartCoroutine(CR_Dodge(_Input));
@@ -339,12 +388,22 @@ public class Character : MonoBehaviour
 					}
 				}				
 				
-				m_SpeedUIText.text = current_speed.ToString();
+			//m_SpeedUIText.text =  m_Rigidbody.velocity.magnitude.ToString(); //current_speed.ToString();
 
                 // Movement
 				// Using set velcotity as physics collision work better
-                //m_Rigidbody.MovePosition(m_Rigidbody.position + _Direction.normalized * Time.deltaTime * speed);
-				m_Rigidbody.velocity = _Direction * current_speed;
+				if(!_Dodge)
+				{
+					//m_Rigidbody.MovePosition(m_Rigidbody.position + _Direction.normalized * Time.deltaTime * current_speed);
+					m_Rigidbody.velocity = _Direction.normalized * current_speed;// * Time.deltaTime;
+				}
+				else
+				{
+					m_Rigidbody.MovePosition(m_Rigidbody.position + _Direction.normalized * Time.deltaTime * current_speed);
+				}
+
+				 
+
 
             }
         }
@@ -440,12 +499,55 @@ public class Character : MonoBehaviour
             }*/
 		//m_CharacterTargetRot2 *= Quaternion.Euler(_AdditivePitch,transform.eulerAngles.y,transform.eulerAngles.z);
 
-            // Time based rotation
-			_AdditivePitch *= Time.deltaTime * m_PitchRotationSpeed;
+		// THIS WORKS
 
-            // Add rotation
-            Quaternion rotator = Quaternion.AngleAxis(_AdditivePitch, transform.right);
-            transform.rotation = rotator * transform.rotation;
+        // Time based rotation
+		_AdditivePitch *= Time.deltaTime * m_PitchRotationSpeed;
+
+        // Add rotation
+        Quaternion rotator = Quaternion.AngleAxis(_AdditivePitch, transform.right);
+        transform.rotation = rotator * transform.rotation;
+
+
+		// THIS IS TEST CODE
+		/*
+		// wrap values to avoid springing quickly the wrong way from positive to negative
+//		if (m_TargetAngles.y > 180)
+//		{
+//			m_TargetAngles.y -= 360;
+//			m_FollowAngles.y -= 360;
+//		}
+		if (m_TargetAngles.x > 180)
+		{
+			m_TargetAngles.x -= 360;
+			m_FollowAngles.x -= 360;
+		}
+//		if (m_TargetAngles.y < -180)
+//		{
+//			m_TargetAngles.y += 360;
+//			m_FollowAngles.y += 360;
+//		}
+		if (m_TargetAngles.x < -180)
+		{
+			m_TargetAngles.x += 360;
+			m_FollowAngles.x += 360;
+		}
+
+		// with mouse input, we have direct control with no springback required.
+        //m_TargetAngles.y += inputH*rotationSpeed;
+		m_TargetAngles.x += _AdditivePitch*rotationSpeed;
+
+
+        // clamp values to allowed range
+        //m_TargetAngles.y = Mathf.Clamp(m_TargetAngles.y, -rotationRange.y*0.5f, rotationRange.y*0.5f);
+        m_TargetAngles.x = Mathf.Clamp(m_TargetAngles.x, -rotationRange.x*0.5f, rotationRange.x*0.5f);
+
+		// smoothly interpolate current values to target angles
+		m_FollowAngles = Vector3.SmoothDamp(m_FollowAngles, m_TargetAngles, ref m_FollowVelocity, dampingTime);
+
+		// update the actual gameobject's rotation
+		transform.rotation = m_OriginalRotation*Quaternion.Euler(-m_FollowAngles.x,0, 0);
+		*/
 
 		//transform.localRotation = Quaternion.Slerp(transform.localRotation, m_CharacterTargetRot2,Time.deltaTime * m_PitchRotationSpeed);
 
@@ -493,7 +595,7 @@ public class Character : MonoBehaviour
             while (Mathf.Abs(sumInput) < 360)
             {
                 // Roll
-                AddRoll(-_Input,true);
+              	AddRoll(-_Input,true);
 
                 // Movement
                 Move(oldRight * _Input, false, true);
