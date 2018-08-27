@@ -102,7 +102,7 @@ public class Character : MonoBehaviour
             // Update yaw from roll angle. Written in fixed update to avoid camera lerp break
             UpdateYawFromRoll();
 
-			if (Input.GetButtonUp("Fall"))
+			/*if (Input.GetButtonUp("Fall"))
 			{
 				FreeFall(false);
 				print("DONE");
@@ -111,7 +111,7 @@ public class Character : MonoBehaviour
 			{
 
 				FreeFall(true);
-			}
+			}*/
 
         }
 
@@ -140,7 +140,7 @@ public class Character : MonoBehaviour
                 {
                     m_Camera.SetBoostView(false);
                 }
-                 * */
+                */
             }
         }
 
@@ -302,8 +302,13 @@ public class Character : MonoBehaviour
 		/// </summary>
 		public void Airbrake()
 		{		
-			brake_timer += Time.deltaTime;
-			m_Rigidbody.velocity = Vector3.Lerp( m_Rigidbody.velocity, Vector3.zero,brake_timer/ brake_speed); //_Direction * current_speed;
+		brake_timer += Time.deltaTime/brake_speed;
+		if(m_Rigidbody.velocity.magnitude <= Vector3.one.magnitude)
+			m_Rigidbody.velocity = Vector3.Lerp( m_Rigidbody.velocity, Vector3.zero, brake_timer); //_Direction * current_speed;
+		else{
+			print("BrakeFinished");
+		}
+		//m_Rigidbody.velocity = new Vector3(m_Rigidbody.velocity.x, 0f,m_Rigidbody.velocity.z);
 
 			//print(m_Rigidbody.velocity.magnitude);
 
@@ -510,46 +515,7 @@ public class Character : MonoBehaviour
 
 
 		// THIS IS TEST CODE
-		/*
-		// wrap values to avoid springing quickly the wrong way from positive to negative
-//		if (m_TargetAngles.y > 180)
-//		{
-//			m_TargetAngles.y -= 360;
-//			m_FollowAngles.y -= 360;
-//		}
-		if (m_TargetAngles.x > 180)
-		{
-			m_TargetAngles.x -= 360;
-			m_FollowAngles.x -= 360;
-		}
-//		if (m_TargetAngles.y < -180)
-//		{
-//			m_TargetAngles.y += 360;
-//			m_FollowAngles.y += 360;
-//		}
-		if (m_TargetAngles.x < -180)
-		{
-			m_TargetAngles.x += 360;
-			m_FollowAngles.x += 360;
-		}
 
-		// with mouse input, we have direct control with no springback required.
-        //m_TargetAngles.y += inputH*rotationSpeed;
-		m_TargetAngles.x += _AdditivePitch*rotationSpeed;
-
-
-        // clamp values to allowed range
-        //m_TargetAngles.y = Mathf.Clamp(m_TargetAngles.y, -rotationRange.y*0.5f, rotationRange.y*0.5f);
-        m_TargetAngles.x = Mathf.Clamp(m_TargetAngles.x, -rotationRange.x*0.5f, rotationRange.x*0.5f);
-
-		// smoothly interpolate current values to target angles
-		m_FollowAngles = Vector3.SmoothDamp(m_FollowAngles, m_TargetAngles, ref m_FollowVelocity, dampingTime);
-
-		// update the actual gameobject's rotation
-		transform.rotation = m_OriginalRotation*Quaternion.Euler(-m_FollowAngles.x,0, 0);
-		*/
-
-		//transform.localRotation = Quaternion.Slerp(transform.localRotation, m_CharacterTargetRot2,Time.deltaTime * m_PitchRotationSpeed);
 
         }
 

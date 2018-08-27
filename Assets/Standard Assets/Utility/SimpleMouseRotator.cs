@@ -31,7 +31,7 @@ namespace UnityStandardAssets.Utility
 
         private void Start()
         {
-            m_OriginalRotation = transform.localRotation;
+			m_OriginalRotation = transform.rotation;
         }
 
 
@@ -41,7 +41,7 @@ namespace UnityStandardAssets.Utility
 
 
             // we make initial calculations from the original local rotation
-            transform.localRotation = m_OriginalRotation;
+			transform.rotation = m_OriginalRotation;
 
             // read input from mouse or mobile controls
             float inputH;
@@ -110,7 +110,7 @@ namespace UnityStandardAssets.Utility
 			m_FollowAngles = Vector3.SmoothDamp(m_FollowAngles, m_TargetAngles, ref m_FollowVelocity, dampingTime);
 
             // update the actual gameobject's rotation
-            transform.localRotation = m_OriginalRotation*Quaternion.Euler(-m_FollowAngles.x, m_FollowAngles.y, 0);
+			transform.rotation = m_OriginalRotation*Quaternion.Euler(-m_FollowAngles.x, m_FollowAngles.y, 0);
         }
     }
 }

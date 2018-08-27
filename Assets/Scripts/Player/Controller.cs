@@ -1,5 +1,6 @@
 ﻿using UnityEngine;
 using System.Collections;
+using System.Collections.Generic;
 
 public class Controller : MonoBehaviour
 {
@@ -20,6 +21,7 @@ public class Controller : MonoBehaviour
 		TAKEOFF,
 		LANDING*/
 	};
+
 
     #region Attributes
     // Character
@@ -70,7 +72,12 @@ public class Controller : MonoBehaviour
 	float timer = 0f;
 	public float m_LockonHoldTime = 1.5f;
 	bool button_held = false;
-	bool air_brake_enabled = false;
+	public bool air_brake_enabled = false;
+
+	public bool switch_controls = false;
+	bool use_PS4_controls = false;
+	public Dictionary<string, List<string>> Input_Dictionary;
+	string input_tag = "Controls";
 
     #endregion
 
@@ -93,11 +100,47 @@ public class Controller : MonoBehaviour
                 Camera.SetupCurrent(m_CurrentCamera.CameraComponent);
             }
         }
+
+		Input_Dictionary = new Dictionary<string, List<string>>();
+		List<string> PC_List = new List<string>(){
+			"Throttle",
+			"Rudder",
+			"Pitch",
+			"Roll"
+
+		};
+
+		Input_Dictionary.Add(input_tag, PC_List);
     }
 
 	// Use this for checking input (apart from movement input)
 	void Update()
 	{		
+		
+		if(Input.GetKeyDown(KeyCode.P) || switch_controls)
+		{
+			switch_controls = false;
+			if(!use_PS4_controls)
+			{
+				use_PS4_controls = true;
+				print("SWAP CONTROLS");
+				for(int i = 0;i<Input_Dictionary[input_tag].Count;i++)
+				{
+					Input_Dictionary[input_tag][i] = string.Concat(Input_Dictionary[input_tag][i], "PS4");
+				}
+			}
+			else
+			{
+				use_PS4_controls = false;
+				print("SWAP CONTROLS BACK");
+				for(int i = 0;i<Input_Dictionary[input_tag].Count;i++)
+				{
+					Input_Dictionary[input_tag][i] = Input_Dictionary[input_tag][i].Substring(0,Input_Dictionary[input_tag][i].LastIndexOf("PS4"));
+				}
+			}
+		}
+
+
 		// Check input for weapon actions
 		CheckWeaponInput();
 
@@ -228,7 +271,7 @@ public class Controller : MonoBehaviour
 
 		if (Input.GetButton("AirBrake"))
 		{
-			print("AIRBRAKE");
+			//print("AIRBRAKE");
 			air_brake_enabled = true;
 			m_Character.Airbrake();
 
@@ -326,11 +369,19 @@ public class Controller : MonoBehaviour
     {
         // Input
 		//float throttleAxis = Input.GetAxis("MouseScroll"); //Change speed increase scale to 10f
-		float throttleAxis = Input.GetAxis("Throttle");
+		/*
+		float throttleAxis = Input.GetAxis(Input_Dictionary["PC"][0]);
         float rudderAxis = Input.GetAxis("Rudder");
 
 		float pitchAxis = Input.GetAxis("MouseY") * m_YSensitivity;
 		float rollAxis = Input.GetAxis("MouseX") * m_XSensitivity;
+		*/
+
+		float throttleAxis = Input.GetAxis(Input_Dictionary[input_tag][0]);//
+		float rudderAxis = Input.GetAxis(Input_Dictionary[input_tag][1]);
+
+		float pitchAxis = Input.GetAxis(Input_Dictionary[input_tag][2]) * m_YSensitivity;
+		float rollAxis = Input.GetAxis(Input_Dictionary[input_tag][3]) * m_XSensitivity;
 
 		if(m_LockMouse)
 		{
@@ -344,9 +395,9 @@ public class Controller : MonoBehaviour
         {
 			// Invert pitch
 			if(m_InvertYAxis)
-	            m_Character.AddPitch(pitchAxis);
+	            m_Character.AddPitch(-pitchAxis);
 			else
-				m_Character.AddPitch(-pitchAxis);		
+				m_Character.AddPitch(pitchAxis);		
         }
 
         // Roll

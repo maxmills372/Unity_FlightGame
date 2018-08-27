@@ -56,8 +56,11 @@ public class LockOn : MonoBehaviour
 			RaycastHit hit;
 			if(Physics.Raycast(player_object.transform.position,player_object.transform.forward,out hit, cursor_ray_distance))
 			{
-				// Set tracing cube to the hit position
-				raycasthit_cube.transform.position = hit.point;
+				if(hit.collider.tag != "Player")
+				{
+					// Set tracing cube to the hit position
+					raycasthit_cube.transform.position = hit.point;
+				}
 
 			}
 			// Use the cube as the origin point for the closest to calculation 
