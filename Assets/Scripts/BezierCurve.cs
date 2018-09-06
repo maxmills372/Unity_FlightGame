@@ -5,10 +5,10 @@ using UnityEngine;
 public class BezierCurve : MonoBehaviour {
 
 	public GameObject Line_clone;
-	public GameObject start_point_clone;// point0,point3;
-	public GameObject control_point_clone;// point1,point2;
+	public GameObject start_point_clone,start_point_clone2;// point0,point3;
+	public GameObject control_point_clone,control_point_clone2;// point1,point2;
 	int num_positions = 50;
-	//public Vector3[] positions = new Vector3[50];
+	public Vector3[] positions = new Vector3[50];
 	[System.Serializable]
 	public struct bezier_curve_instance
 	{
@@ -39,7 +39,9 @@ public class BezierCurve : MonoBehaviour {
 	// Use this for initialization
 	void Start () 
 	{
-		//Line_ .positionCount = num_positions;
+		Line_clone.GetComponent<LineRenderer>().positionCount = num_positions;
+
+		/*
 		bezier_curve_instance line_instance;
 		line_instance.start_point = start_point_clone;
 		line_instance.control_point = control_point_clone;
@@ -49,12 +51,12 @@ public class BezierCurve : MonoBehaviour {
 
 		Init_Curve(line_instance,start_point_clone.transform.position,start_point_clone.transform.rotation);
 		Bezier_Curves.Add(line_instance);
-
+		*/
 	}
 	
 	// Update is called once per frame
 	void Update () 
-	{
+	{/*
 		int count = 0;
 		for(int i = 0;i<Bezier_Curves.Count;i++)
 		{
@@ -69,7 +71,7 @@ public class BezierCurve : MonoBehaviour {
 		}
 
 		CreateStartPoints();
-
+		*/
 
 		// Camera lerping test
 		t_ = Time.deltaTime * move_speed;
@@ -95,6 +97,7 @@ public class BezierCurve : MonoBehaviour {
 
 		camera_object.transform.rotation = Quaternion.Slerp(camera_object.transform.rotation, start_points[current_point].rotation, rotation_time);
 		*/
+		CreateBezier(Line_clone,0,0,positions);
 
 	}
 
@@ -105,6 +108,8 @@ public class BezierCurve : MonoBehaviour {
 		instance.control_point_2  = Instantiate(control_point_clone,cam_pos+ (Vector3.right * -15f),cam_rot);
 		instance.Line_  = Instantiate(Line_clone,cam_pos,cam_rot);
 		instance.positions = new Vector3[50];
+
+		instance.Line_.GetComponent<LineRenderer>().positionCount = num_positions;
 	}
 	void CreateStartPoints()
 	{
@@ -128,15 +133,15 @@ public class BezierCurve : MonoBehaviour {
 			current_control += 2;
 		}
 	}
-	void CreateBezier(GameObject line,int current_start,int current_control,bezier_curve_instance instance )
+	void CreateBezier(GameObject line,int current_start,int current_control,Vector3[] positions )
 	{
 		for(int i = 0;i<num_positions;i++)
 		{
 			float t_ = (float)i/num_positions;
-			instance.positions[i] = CubicBezier(t_,current_start,current_control);//,point0.position,point1.position,point2.position,point3.position);
+			positions[i] = CubicBezier(t_,current_start,current_control);//,point0.position,point1.position,point2.position,point3.position);
 		}
 
-		line.GetComponent<LineRenderer>().SetPositions(instance.positions);
+		line.GetComponent<LineRenderer>().SetPositions(positions);
 	}
 
 	Vector3 LinearBezier(float t,Vector3 p0,Vector3 p1 )
@@ -153,10 +158,10 @@ public class BezierCurve : MonoBehaviour {
 
 	Vector3 CubicBezier(float t,int current_start,int current_control)//, Vector3 p0, Vector3 p1, Vector3 p2, Vector3 p3)
 	{
-		Vector3 num = ((1-t) *(1-t) * (1-t)) * Bezier_Curves[current_start].start_point.transform.position;
-		num += (3*(1-t)*(1-t)) *t * Bezier_Curves[current_control].control_point.transform.position;
-		num += (3*(1-t)) * (t*t) * Bezier_Curves[current_control].control_point_2.transform.position;
-		num += (t*t*t) * Bezier_Curves[current_start+1].start_point.transform.position;
+		Vector3 num = ((1-t) *(1-t) * (1-t)) * start_point_clone.transform.position;
+		num += (3*(1-t)*(1-t)) *t * control_point_clone.transform.position;
+		num += (3*(1-t)) * (t*t) * control_point_clone2.transform.position;
+		num += (t*t*t) * start_point_clone2.transform.position;
 
 		return num;
 
