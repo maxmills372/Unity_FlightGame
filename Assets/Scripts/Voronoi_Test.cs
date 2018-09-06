@@ -6,16 +6,17 @@ public class Voronoi_Test : MonoBehaviour
 {
 	public int resolution = 50;
 	public int region_amount = 5;
-	public bool all_ya = false;
+	public bool m_AllOfYa = false;
 	public bool create_grid = false;
 	public bool voronoi_break = false;
 	public bool combine_meshes = false;
 	public bool give_rigidbodies = false;
 	public bool reset_object = false;
 
-	public GameObject test_cube,test_sphere;
-	public GameObject grid_parent;
-	public Rigidbody rigidbody_clone;
+	public bool find_objects = false;
+	GameObject region_clone;
+	GameObject region_parent;
+	Rigidbody rigidbody_clone;
 
 	Object_Pool object_pooler;
 
@@ -41,27 +42,39 @@ public class Voronoi_Test : MonoBehaviour
 		public float temp_dist;
 		public Color color;
 	}
+	region[] regions;
 
-	public region[] regions;
 
 	// Use this for initialization
 	void Start () 
 	{
 		object_pooler = Object_Pool.instance;
 
+		if(find_objects)
+		{
+			region_clone = transform.parent.Find("Region_Clone").gameObject;
+			region_parent= transform.parent.Find("Region_Parent").gameObject;
+			rigidbody_clone = transform.parent.Find("Rigidbody_Clone").gameObject.GetComponent<Rigidbody>();
+		}
+
 	}
 	
 	// Update is called once per frame
 	void Update ()
 	{
-		if(all_ya)
+		if(m_AllOfYa)
 		{
-			all_ya = false;
+			float st_ = Time.realtimeSinceStartup;
+			
+			m_AllOfYa = false;
 			//StartCoroutine("BreakObject");
 			CreateGrid();
 			VoronoiBreak();
 			CombineMeshes();
 			AddRigidbodies();
+
+			float et_ = Time.realtimeSinceStartup;
+			print("Finished voronoi break: " + (et_ - st_));
 
 		}
 
@@ -84,23 +97,18 @@ public class Voronoi_Test : MonoBehaviour
 		}
 		if(reset_object)
 		{			
+			object_pooler.pool_dictionary["Cube"].Clear();
+			object_pooler.AddToPool("Cube",resolution * resolution*resolution);
 			Reset_Object();
 		}
 	}
-	void OnCollisionEnter(Collision collider)
-	{
-		/*if(collider.relativeVelocity.magnitude > 10.0f)
-		{
-			voronoi_break = true;
-			//print("HIT");
-		}*/
-	}
+
+	// Waits until functions are finished -- not needed as does this already, i just like the code
 	IEnumerator BreakObject()
 	{
 
 		yield return new WaitUntil(() => CreateGrid());
 		yield return new WaitUntil(() => VoronoiBreak());
-
 		yield return new WaitUntil(() =>CombineMeshes());
 
 		AddRigidbodies();
@@ -124,9 +132,6 @@ public class Voronoi_Test : MonoBehaviour
 		// Calculate the scale of each object
 		object_scale = new Vector3(this.transform.localScale.x/resolution,this.transform.localScale.y/resolution, this.transform.localScale.z/resolution);
 
-		float st_ = Time.realtimeSinceStartup;
-
-
 		// Create grid of Gameobjects
 		GameObject temp_object;
 		for(int i = 0; i<resolution; i++)
@@ -135,9 +140,9 @@ public class Voronoi_Test : MonoBehaviour
 			{
 				for(int k = 0; k<resolution; k++)
 				{
-					// Spawn a gameobject at start position
+					// Spawn a gameobject at start position using the objects from the object pool
 					temp_object = //Instantiate(test_cube, start_pos, Quaternion.identity, grid_parent.transform) as GameObject;
-						object_pooler.SpawnFromPool("Cube", start_pos, Quaternion.identity, grid_parent.transform);
+								  object_pooler.SpawnFromPool("Cube", start_pos, Quaternion.identity, region_parent.transform);
 
 					// Set new position and scale
 					temp_object.transform.localScale = object_scale;// new Vector3(this.transform.localScale.x/resolution,test_cube.transform.localScale.y,this.transform.localScale.z/resolution);
@@ -151,9 +156,6 @@ public class Voronoi_Test : MonoBehaviour
 			}
 		}
 
-		float et_ = Time.realtimeSinceStartup;
-		print("Finished spawning grid: " + (et_ - st_));
-
 		// Create array of regions
 		regions = new region[region_amount];
 
@@ -161,7 +163,7 @@ public class Voronoi_Test : MonoBehaviour
 		for(int r = 0; r<region_amount; r++)
 		{
 			// Create new region at random point
-			GameObject region_sphere = Instantiate(test_sphere,transform.position,Quaternion.identity) as GameObject;
+			GameObject region_sphere = Instantiate(region_clone,transform.position,Quaternion.identity,region_parent.transform) as GameObject;
 			region_sphere.transform.position = grid_[Random.Range(0,resolution),Random.Range(0,resolution),Random.Range(0,resolution)].transform.position;
 
 			// Assign control point
@@ -199,7 +201,6 @@ public class Voronoi_Test : MonoBehaviour
 					// For every region
 					for(int r = 0; r<region_amount; r++)
 					{
-
 						// Distance between object and region control point
 						temp_dist = Euclidean_Dist_3D(grid_[i,j,k].transform.position, regions[r].control_point.transform.position);
 
@@ -209,13 +210,11 @@ public class Voronoi_Test : MonoBehaviour
 							// Update closest and store region array identifier
 							closest_dist = temp_dist;
 							temp_int = r;
-
 						}					
 					}
 
 					// Add closest to that region
 					regions[temp_int].members.Add(grid_[i,j,k]);
-
 				}
 			}
 		}
@@ -241,6 +240,7 @@ public class Voronoi_Test : MonoBehaviour
 		return true;
 
 	}
+	// Sends meesage to all regions to copmbine all child meshes into one
 	bool CombineMeshes()
 	{	
 		// For every region member 
@@ -252,10 +252,10 @@ public class Voronoi_Test : MonoBehaviour
 		combine_meshes = false;
 		combined = true;
 
-
 		return true;
 	}
 
+	// Gives every combined mesh a rigidbody with the components of the RB clone
 	void AddRigidbodies()
 	{
 		give_rigidbodies = false;
@@ -272,11 +272,10 @@ public class Voronoi_Test : MonoBehaviour
 			regions[r].control_point.GetComponent<Rigidbody>().drag = rigidbody_clone.drag;
 			regions[r].control_point.GetComponent<Rigidbody>().angularDrag = rigidbody_clone.angularDrag;
 			regions[r].control_point.GetComponent<Rigidbody>().useGravity = rigidbody_clone.useGravity;
-
-
-			
+						
 		}
 	}
+
 	void Reset_Object()
 	{
 		if(created_)
@@ -290,7 +289,7 @@ public class Voronoi_Test : MonoBehaviour
 						//Destroy(grid_[i,j,k]);
 						grid_[i,j,k].SetActive(false);
 						grid_[i,j,k].transform.parent = object_pooler.transform;
-						//object_pooler.pool_dictionary["Cube"].Enqueue(grid_[i,j,k]);
+
 					}
 				}
 			}

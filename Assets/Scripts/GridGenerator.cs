@@ -18,9 +18,12 @@ public class GridGenerator : MonoBehaviour
     private float       m_SpaceBetweenObjects   = 3;
 
 	public bool map_generated_ = false;
+	public bool do_action = false;
 
 	[HideInInspector]
 	public List<GameObject> cubes_;
+
+	int counter = 0;
 
     // Use this for initialization
     void Start()
@@ -31,17 +34,19 @@ public class GridGenerator : MonoBehaviour
 
 	void Update()
 	{
-		/*if(map_generated_)
+		if(map_generated_ && do_action)
 		{
 			foreach(GameObject g in cubes_)
 			{
-				//g.transform.position += new Vector3(Random.Range(0.5f,5.0f),Random.Range(0.5f,5.0f),Random.Range(0.5f,2.0f));
+				g.GetComponent<Rigidbody>().AddExplosionForce(-500f,cubes_[446].transform.position,1000f);
+
+				//g.GetComponent<Rigidbody>().velocity = new Vector3(Random.Range(0.5f,25.0f),Random.Range(0.5f,25.0f),Random.Range(0.25f,2.0f));
 				//g.transform.position -= new Vector3(Random.Range(0.5f,5.0f),Random.Range(0.5f,5.0f),Random.Range(0.5f,2.0f));
-				g.SendMessage("CreateGrid");
+				//g.SendMessage("CreateGrid");
 			}	
 
 			map_generated_ = false;
-		}*/
+		}
 	}
 
     /// Generate a grid of prefab instances
@@ -55,9 +60,10 @@ public class GridGenerator : MonoBehaviour
                 {
                     for (int k = 0; k < m_GridSize.z; k++)
                     {
+						counter++;
                         GameObject obj = GameObject.Instantiate(m_PrefabToSpawn, transform.position + new Vector3(i * m_SpaceBetweenObjects, j * m_SpaceBetweenObjects, k * m_SpaceBetweenObjects), Quaternion.identity) as GameObject;
                         obj.transform.parent = transform.parent;
-
+						obj.name = counter.ToString();
 						cubes_.Add(obj);
                     }
                 }

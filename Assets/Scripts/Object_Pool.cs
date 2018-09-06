@@ -27,9 +27,19 @@ public class Object_Pool : MonoBehaviour {
 	}
 
 	// Use this for initialization
-	void Start () {
+	void Start () 
+	{
 		float st_ = Time.realtimeSinceStartup;
 
+		CreatePool();
+
+		float et_ = Time.realtimeSinceStartup;
+		print("Finished: " + (et_ - st_));
+
+	}
+
+	public void CreatePool()
+	{
 		pool_dictionary = new Dictionary<string, Queue<GameObject>>();
 
 		foreach(Pool p in pools)
@@ -46,10 +56,17 @@ public class Object_Pool : MonoBehaviour {
 
 			pool_dictionary.Add(p.tag, object_pool); 
 		}
+	}
 
-		float et_ = Time.realtimeSinceStartup;
-		print("Finished: " + (et_ - st_));
+	public void AddToPool(string tag, int size)
+	{		
+		for(int i = 0; i < size; i++)
+		{
+			GameObject obj = Instantiate(pools[0].prefab,transform);
+			obj.SetActive(false);
 
+			pool_dictionary[tag].Enqueue(obj);	
+		}
 	}
 
 	public GameObject SpawnFromPool(string tag, Vector3 position, Quaternion rotation,Transform parent)

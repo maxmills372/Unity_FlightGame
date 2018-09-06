@@ -175,7 +175,7 @@ public class homing_missile : MonoBehaviour {
 	void TrackTarget()
 	{
 		target.position = original_target_pos + new Vector3(5f,0f,0f);
-		direction = target.position - rb.position + offset;
+		direction = target.position - rb.position;
 
 		direction.Normalize();
 
@@ -195,7 +195,7 @@ public class homing_missile : MonoBehaviour {
 
 			// Voronoi break effect
 			if(col.GetComponent<Voronoi_Test>())
-				col.GetComponent<Voronoi_Test>().all_ya = true;
+				col.GetComponent<Voronoi_Test>().m_AllOfYa = true;
 
 			// #Boom
 			Explode();
@@ -219,6 +219,14 @@ public class homing_missile : MonoBehaviour {
 		// Removed so object stops moving 
 		Destroy(Homing_Missile_Script);
 		Destroy(rb);
+	}
+
+	public void Pathfinding_Vol2()
+	{
+		// TODO
+		// Use box colldiders instead of rays
+		// Also if both left and right / up and down sides are hit,
+		// 		last resort action? - swerve left or right
 	}
 
 	public void Pathfinding()

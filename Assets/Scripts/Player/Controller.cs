@@ -377,7 +377,7 @@ public class Controller : MonoBehaviour
 		float rollAxis = Input.GetAxis("MouseX") * m_XSensitivity;
 		*/
 
-		float throttleAxis = Input.GetAxis(Input_Dictionary[input_tag][0]);//
+		float throttleAxis = Input.GetAxis(Input_Dictionary[input_tag][0]);
 		float rudderAxis = Input.GetAxis(Input_Dictionary[input_tag][1]);
 
 		float pitchAxis = Input.GetAxis(Input_Dictionary[input_tag][2]) * m_YSensitivity;

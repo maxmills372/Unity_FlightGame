@@ -12,6 +12,7 @@ GameObject:
   - component: {fileID: 6574768}
   - component: {fileID: 2319570}
   - component: {fileID: 114829501554710754}
+  - component: {fileID: 54207662597989024}
   m_Layer: 0
   m_Name: Cube
   m_TagString: Lockon
@@ -110,13 +111,28 @@ Prefab:
   m_ParentPrefab: {fileID: 0}
   m_RootGameObject: {fileID: 198968}
   m_IsPrefabParent: 1
+--- !u!54 &54207662597989024
+Rigidbody:
+  m_ObjectHideFlags: 1
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 100100000}
+  m_GameObject: {fileID: 198968}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0
+  m_AngularDrag: 0.05
+  m_UseGravity: 0
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!114 &114829501554710754
 MonoBehaviour:
   m_ObjectHideFlags: 1
   m_PrefabParentObject: {fileID: 0}
   m_PrefabInternal: {fileID: 100100000}
   m_GameObject: {fileID: 198968}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 5cdc27ed9f19c034f89bd17976aff700, type: 3}
   m_Name: 
