@@ -409,7 +409,7 @@ public class Controller : MonoBehaviour
 
 		m_Character.UpdateSpeed(throttleAxis);
 
-		m_Character.AddYaw(rudderAxis);
+		m_Character.AddYaw(rudderAxis*3f);
 
 
         // Reset pitch and roll depending on reset orientation method

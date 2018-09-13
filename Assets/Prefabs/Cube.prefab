@@ -139,17 +139,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   resolution: 5
   region_amount: 10
-  all_ya: 0
+  m_AllOfYa: 0
   create_grid: 0
   voronoi_break: 0
   combine_meshes: 0
   give_rigidbodies: 0
   reset_object: 0
-  test_cube: {fileID: 1363450017575970, guid: 18e637ab5e22e144daf17e4076a73c40, type: 2}
-  test_sphere: {fileID: 1362263899151926, guid: fdbc03e82d27a054db9a5516937061ef,
-    type: 2}
-  grid_parent: {fileID: 1353767249096122, guid: 0f3f49777f5c4c2438f611feb4dda45c,
-    type: 2}
-  rigidbody_clone: {fileID: 54337059472993318, guid: 730a9158d364f3942a2fb3b3cf827cf0,
-    type: 2}
-  regions: []
+  find_objects: 0

@@ -468,7 +468,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!81 &60318770
 AudioListener:
   m_ObjectHideFlags: 0
@@ -2904,6 +2904,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7fedcef3db6c10419ab6b7d32b69c5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_UsePlaneControls: 1
+  m_UpdateYawFromRoll: 1
   m_MovementSpeed: 40
   m_SprintScale: 2
   m_RollRotationSpeed: 20
@@ -2918,7 +2920,7 @@ MonoBehaviour:
   m_MaxIncreaseSpeed: 20
   m_MinIncreaseSpeed: -20
   m_SpeedIncreaseScale: 0.1
-  brake_speed: 10
+  m_BrakeSpeed: 10
   m_BulletSpawnPosLeft: {fileID: 0}
   m_BulletSpawnPosRight: {fileID: 0}
   m_MuzzleFlashPS: {fileID: 0}
@@ -2928,7 +2930,7 @@ MonoBehaviour:
   m_BulletLineRend_2: {fileID: 0}
   m_SpeedUIText: {fileID: 0}
   m_RocketPrefab: {fileID: 0}
-  raycasthit_cube: {fileID: 0}
+  m_RaycasthitCube: {fileID: 0}
   brake_timer: 0
   rotationRange: {x: 70, y: 70}
   rotationSpeed: 10
@@ -3130,7 +3132,7 @@ Camera:
     width: 1
     height: 1
   near clip plane: 0.3
-  far clip plane: 1000
+  far clip plane: 5000
   field of view: 60
   orthographic: 0
   orthographic size: 5
@@ -5947,7 +5949,7 @@ MonoBehaviour:
   m_XSensitivity: 5
   m_YSensitivity: 5
   m_TimeBetweenTurretFire: 0
-  m_TimeBetweenRocketFire: 2
+  m_TimeBetweenRocketFire: 1
   m_RocketFireDelay: 0.3
   m_LockonHoldTime: 1
   air_brake_enabled: 0
@@ -5963,6 +5965,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d7fedcef3db6c10419ab6b7d32b69c5f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  m_UsePlaneControls: 1
+  m_UpdateYawFromRoll: 1
   m_MovementSpeed: 40
   m_SprintScale: 2
   m_RollRotationSpeed: 20
@@ -5977,7 +5981,7 @@ MonoBehaviour:
   m_MaxIncreaseSpeed: 20
   m_MinIncreaseSpeed: -20
   m_SpeedIncreaseScale: 0.1
-  brake_speed: 5
+  m_BrakeSpeed: 10
   m_BulletSpawnPosLeft: {fileID: 1860912750}
   m_BulletSpawnPosRight: {fileID: 1929898651}
   m_MuzzleFlashPS: {fileID: 2089273215}
@@ -5988,7 +5992,7 @@ MonoBehaviour:
   m_SpeedUIText: {fileID: 1105334520}
   m_RocketPrefab: {fileID: 1054684513329118, guid: 58b54a1d49806e64fbbded08ef576ae3,
     type: 2}
-  raycasthit_cube: {fileID: 2064715383}
+  m_RaycasthitCube: {fileID: 0}
   brake_timer: 0
   rotationRange: {x: 400, y: 40}
   rotationSpeed: 10
@@ -9085,8 +9089,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: c783bf98955cf5844906ef91d0645249, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  target: {x: 0, y: 0, z: 0}
-  speed: 10
 --- !u!198 &2089273215 stripped
 ParticleSystem:
   m_PrefabParentObject: {fileID: 198000012944515248, guid: 9defeac88977c0d448aa4541073ee9e4,

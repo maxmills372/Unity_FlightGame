@@ -8,6 +8,8 @@ public class Character : MonoBehaviour
 {
 	#region PublicAttributes    
 	[Header("Attributes")]
+	public bool 		m_UsePlaneControls 		= true;
+	public bool 		m_UpdateYawFromRoll		= true;
 	public float		m_MovementSpeed         = 40f;
 	public float        m_SprintScale           = 2f;        
 	public float        m_RollRotationSpeed     = 20f;
@@ -28,7 +30,7 @@ public class Character : MonoBehaviour
 	public float 		m_MaxIncreaseSpeed 		= 20f;
 	public float		m_MinIncreaseSpeed		= -20f;
 	public float 		m_SpeedIncreaseScale 	= 0.1f;
-	public float brake_speed = 10f;
+	public float 		m_BrakeSpeed = 10f;
 
 	[Header("Unity Gameobjects")]
 	public Transform 		m_BulletSpawnPosLeft;
@@ -38,7 +40,7 @@ public class Character : MonoBehaviour
 	public LineRenderer		m_BulletLineRend, m_BulletLineRend_2;
 	public Text 			m_SpeedUIText;
 	public GameObject		m_RocketPrefab;
-	public GameObject raycasthit_cube;
+	public GameObject 		m_RaycasthitCube;
 	#endregion     
 
 	#region PrivateVariables
@@ -99,8 +101,9 @@ public class Character : MonoBehaviour
         // Called at fixed time
         void FixedUpdate()
         {
-            // Update yaw from roll angle. Written in fixed update to avoid camera lerp break
-            UpdateYawFromRoll();
+			if(m_UpdateYawFromRoll)
+            	// Update yaw from roll angle. Written in fixed update to avoid camera lerp break
+           		UpdateYawFromRoll();
 
 			/*if (Input.GetButtonUp("Fall"))
 			{
@@ -302,7 +305,7 @@ public class Character : MonoBehaviour
 		/// </summary>
 		public void Airbrake()
 		{		
-		brake_timer += Time.deltaTime/brake_speed;
+		brake_timer += Time.deltaTime/m_BrakeSpeed;
 		if(m_Rigidbody.velocity.magnitude <= Vector3.one.magnitude)
 			m_Rigidbody.velocity = Vector3.Lerp( m_Rigidbody.velocity, Vector3.zero, brake_timer); //_Direction * current_speed;
 		else{
@@ -482,7 +485,13 @@ public class Character : MonoBehaviour
 
             // Add rotation
 			// Use transform.forward for plane controls
-			Quaternion rotator = Quaternion.AngleAxis(_AdditiveRoll, -transform.forward);
+			Quaternion rotator;
+
+			if(m_UsePlaneControls || _Dodge)
+				rotator = Quaternion.AngleAxis(_AdditiveRoll, -transform.forward);
+			else
+				rotator = Quaternion.AngleAxis(_AdditiveRoll, transform.up);
+		
             transform.rotation = rotator * transform.rotation;
 
 			//transform.localRotation = Quaternion.Slerp(transform.localRotation, m_CharacterTargetRot,Time.deltaTime * 18f);
@@ -502,26 +511,22 @@ public class Character : MonoBehaviour
                     return;
                 }
             }*/
-		//m_CharacterTargetRot2 *= Quaternion.Euler(_AdditivePitch,transform.eulerAngles.y,transform.eulerAngles.z);
+			//m_CharacterTargetRot2 *= Quaternion.Euler(_AdditivePitch,transform.eulerAngles.y,transform.eulerAngles.z);
 
-		// THIS WORKS
+			// THIS WORKS
+	        // Time based rotation
+			_AdditivePitch *= Time.deltaTime * m_PitchRotationSpeed;
 
-        // Time based rotation
-		_AdditivePitch *= Time.deltaTime * m_PitchRotationSpeed;
-
-        // Add rotation
-        Quaternion rotator = Quaternion.AngleAxis(_AdditivePitch, transform.right);
-        transform.rotation = rotator * transform.rotation;
-
-
-		// THIS IS TEST CODE
-
+	        // Add rotation
+	        Quaternion rotator = Quaternion.AngleAxis(_AdditivePitch, transform.right);
+      	  	transform.rotation = rotator * transform.rotation;
 
         }
 
 		/// <summary>
 		/// Adds the yaw.
 		/// </summary>
+		/// <param name="_AdditiveYaw">Additive yaw.</param>
 		public void AddYaw(float _AdditiveYaw)
 		{
 			// Check yaw limit
@@ -538,7 +543,11 @@ public class Character : MonoBehaviour
 			_AdditiveYaw *= Time.deltaTime * m_YawRotationSpeed;
 
 			// Add rotation
-			Quaternion rotator = Quaternion.AngleAxis(-_AdditiveYaw, transform.up);
+			Quaternion rotator;
+			if(m_UsePlaneControls )
+				rotator = Quaternion.AngleAxis(_AdditiveYaw, transform.up);
+			else
+				rotator = Quaternion.AngleAxis(_AdditiveYaw, -transform.forward);
 			transform.rotation = rotator * transform.rotation;
 		}
 
@@ -657,11 +666,11 @@ public class Character : MonoBehaviour
                 Vector3 rightNoY = transform.right;
                 rightNoY.y = 0;
                 rightNoY.Normalize();
-                float dot = Vector3.Dot(transform.up, rightNoY);
+			float dot = Vector3.Dot(transform.up, rightNoY);
 
                 yawSensibility *= dot * upSign;
 
-                Quaternion rotator = Quaternion.AngleAxis(yawSensibility, Vector3.up);
+			Quaternion rotator = Quaternion.AngleAxis(yawSensibility, Vector3.up);
                 transform.rotation = rotator * transform.rotation;
             }
         }
