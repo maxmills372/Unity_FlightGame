@@ -244,8 +244,8 @@ public class Controller : MonoBehaviour
 	private void CheckActionInput()
     {
 		//TODO
-        // Input - MAKE THIS BUTTON INSTEAD OF AXIS
-        float dodgeAxis = Input.GetAxis("Dodge");
+        // Fix Input - holding multiple keys breaks sprint 
+		float dodgeAxis = Input.GetAxis("Dodge");
 
         // Dodge
         if (dodgeAxis != 0)
@@ -254,7 +254,7 @@ public class Controller : MonoBehaviour
         }
 
         // Boost effect
-        if (Input.GetButtonDown("Sprint"))
+		if (Input.GetButton("Sprint"))
         {
             if (m_CurrentCamera != null)
             {

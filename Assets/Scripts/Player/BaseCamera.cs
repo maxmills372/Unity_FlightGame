@@ -22,6 +22,8 @@ public class BaseCamera : MonoBehaviour
         // Boost coroutine running
         protected Coroutine m_RunningBoostCoroutine         = null;
 
+		ParticleSystem m_BoostEffectPS;
+
     #endregion
 
     #region Getters & Setters
@@ -44,6 +46,8 @@ public class BaseCamera : MonoBehaviour
 
             // Get default FOV
             m_DefaultFOV = m_Camera.fieldOfView;
+
+			m_BoostEffectPS = GetComponentInChildren<ParticleSystem>();
         }
 
     #endregion
@@ -60,16 +64,21 @@ public class BaseCamera : MonoBehaviour
             if (m_RunningBoostCoroutine != null)
             {
                 StopCoroutine(m_RunningBoostCoroutine);
+				m_BoostEffectPS.Stop();
             }
 
             // Start boost coroutine
             if (_Mode)
             {
                 m_RunningBoostCoroutine = StartCoroutine(CR_SetBoostView(m_Camera.fieldOfView, m_FOVOnBoost));
+
+				m_BoostEffectPS.Play();
+
             }
             else
             {
                 m_RunningBoostCoroutine = StartCoroutine(CR_SetBoostView(m_Camera.fieldOfView, m_DefaultFOV));
+
             }
         }
 
