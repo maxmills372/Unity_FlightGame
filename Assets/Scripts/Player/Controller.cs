@@ -78,7 +78,7 @@ public class Controller : MonoBehaviour
 	bool use_PS4_controls = false;
 	public Dictionary<string, List<string>> Input_Dictionary;
 	string input_tag = "Controls";
-
+	bool is_left_side = false;
     #endregion
 
     #region MonoBehaviour
@@ -259,6 +259,7 @@ public class Controller : MonoBehaviour
             if (m_CurrentCamera != null)
             {
                 m_CurrentCamera.SetBoostView(true);
+
             }
         }
         else if (Input.GetButtonUp("Sprint"))
@@ -267,7 +268,14 @@ public class Controller : MonoBehaviour
             {
                 m_CurrentCamera.SetBoostView(false);
             }
-        }
+		}
+		if (Input.GetButtonDown("Sprint"))
+			m_CurrentCamera.m_BoostEffectPS.Play();	
+		
+		if(Input.GetButtonUp("Sprint"))
+			m_CurrentCamera.m_BoostEffectPS.Stop();
+	
+
 
 		if (Input.GetButton("AirBrake"))
 		{
@@ -347,7 +355,8 @@ public class Controller : MonoBehaviour
 				button_held = false;
 				for (int i = 0; i < m_LockOnTracker.targets.Count; i++) 
 				{
-					m_Character.RocketShoot(m_LockOnTracker.targets[i].transform,true);
+					m_Character.RocketShoot(m_LockOnTracker.targets[i].transform,is_left_side);
+					is_left_side = !is_left_side;
 					print("FIRE! " + i);
 
 				}

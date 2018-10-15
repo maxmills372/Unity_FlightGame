@@ -175,6 +175,7 @@ public class Character : MonoBehaviour
 			if (m_Camera != null)
 			{
 				m_Camera.SetBoostView(true);
+
 			}
 		}
 

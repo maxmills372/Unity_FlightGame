@@ -57,7 +57,10 @@ public class homing_missile : MonoBehaviour {
 	float turn_angle = 0.5f;
 	Vector3 offset;
 	Vector3 ray_direction;
+	float t, duration;
 
+	public bool test_boom;
+	bool not_hit = true;
 
 	// Use this for initialization
 	void Start () 
@@ -72,11 +75,17 @@ public class homing_missile : MonoBehaviour {
 
 		if(target != null)
 			original_target_pos = target.position;
+
 	}
 		
 	// Update is called once per frame
 	void Update () 
 	{
+		if(Input.GetKey(KeyCode.T) && test_boom)
+		{
+			ExplodeForceFromHere();
+		}
+
 		switch (CurrentRocketType)
 		{
 		case RocketType.Closest:
@@ -302,6 +311,8 @@ public class homing_missile : MonoBehaviour {
 			transform.rotation = Quaternion.Slerp(transform.rotation, rot, rotatation_damp * Time.deltaTime);
 			*/
 
+
+
 			// Rotate towards target
 			if(target != null)
 			{
@@ -311,7 +322,10 @@ public class homing_missile : MonoBehaviour {
 
 				rotate_amount = Vector3.Cross(direction,transform.forward);
 
+				t += Time.deltaTime;
 				rb.angularVelocity = -rotate_amount * rotate_speed * Time.deltaTime;
+				//rb.angularVelocity  = Vector3.Lerp(rb.angularVelocity, -rotate_amount * rotate_speed,  t);
+
 
 			}
 
@@ -323,7 +337,8 @@ public class homing_missile : MonoBehaviour {
 		}
 
 		// Move towards target
-		rb.velocity = transform.forward * move_speed;
+		if(not_hit)
+			rb.velocity = transform.forward * move_speed;
 
 		// If no target, explode after time
 		if(target == null)
@@ -353,8 +368,26 @@ public class homing_missile : MonoBehaviour {
 			hit_rb = hit.GetComponent<Rigidbody>();
 			if (hit_rb != null)
 				hit_rb.AddExplosionForce(explosion_force,explosion_pos,explosion_radius,3f);
+			
+			if(hit.gameObject.layer == 9)
+				hit.SendMessage("ExplosionHit");
 		}
 	
+	}
+	void ExplosionHit()
+	{
+		StartCoroutine("Test");
+	}
+
+	IEnumerator Test()
+	{
+		
+		not_hit = false;
+		gameObject.transform.LookAt(target);
+
+		yield return new WaitForSeconds(1f);
+		not_hit = true;
+		yield return null;
 	}
 	// Explodes after time (with no target) has been reached
 	IEnumerator ExplodeAfterTime(float time)
