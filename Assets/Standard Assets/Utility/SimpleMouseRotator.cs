@@ -48,8 +48,8 @@ namespace UnityStandardAssets.Utility
             float inputV;
             if (relative)
             {
-                inputH = CrossPlatformInputManager.GetAxis("MouseX");
-                inputV = CrossPlatformInputManager.GetAxis("MouseY");
+                inputH = CrossPlatformInputManager.GetAxis("Roll");
+                inputV = -CrossPlatformInputManager.GetAxis("Pitch");
 
                 // wrap values to avoid springing quickly the wrong way from positive to negative
                 if (m_TargetAngles.y > 180)

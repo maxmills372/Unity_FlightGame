@@ -22,8 +22,9 @@ public class GridGenerator : MonoBehaviour
 
 	[HideInInspector]
 	public List<GameObject> cubes_;
+    public Transform m_ParentObject;
 
-	int counter = 0;
+    int counter = 0;
 
     // Use this for initialization
     void Start()
@@ -61,8 +62,8 @@ public class GridGenerator : MonoBehaviour
                     for (int k = 0; k < m_GridSize.z; k++)
                     {
 						counter++;
-                        GameObject obj = GameObject.Instantiate(m_PrefabToSpawn, transform.position + new Vector3(i * m_SpaceBetweenObjects, j * m_SpaceBetweenObjects, k * m_SpaceBetweenObjects), Quaternion.identity) as GameObject;
-                        obj.transform.parent = transform.parent;
+                        GameObject obj = GameObject.Instantiate(m_PrefabToSpawn, transform.position + new Vector3(i * m_SpaceBetweenObjects, j * m_SpaceBetweenObjects, k * m_SpaceBetweenObjects), Quaternion.identity,m_ParentObject) as GameObject;
+                        
 						obj.name = counter.ToString();
 						cubes_.Add(obj);
                     }
