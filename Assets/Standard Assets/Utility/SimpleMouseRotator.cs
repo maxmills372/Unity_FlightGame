@@ -21,7 +21,8 @@ namespace UnityStandardAssets.Utility
         public bool autoZeroVerticalOnMobile = true;
         public bool autoZeroHorizontalOnMobile = false;
         public bool relative = true;
-        
+
+        public GameObject target_;
         
         private Vector3 m_TargetAngles;
         private Vector3 m_FollowAngles;
@@ -37,8 +38,8 @@ namespace UnityStandardAssets.Utility
 
         private void Update()
         {
-			GetComponent<Rigidbody>().velocity = transform.forward * 100f;// * Time.deltaTime;
-
+            //GetComponent<Rigidbody>().velocity = transform.forward * 100f;// * Time.deltaTime;
+            //transform.Rotate(target_.transform.position, Time.deltaTime * 100.0f);
 
             // we make initial calculations from the original local rotation
 			transform.rotation = m_OriginalRotation;

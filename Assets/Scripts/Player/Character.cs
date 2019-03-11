@@ -47,6 +47,7 @@ public class Character : MonoBehaviour
 
 	private Controller  m_Controller            = null;
     private bool        m_IsDodging             = false;
+    public bool        m_IsLockedOn = false;
     private BaseCamera  m_Camera             	= null;
 	private Rigidbody   m_Rigidbody             = null;
 	Vector3 bullet_offset;
@@ -146,8 +147,9 @@ public class Character : MonoBehaviour
                 */
             }
         }
+  
 
-	public void FreeFall(bool toggle)
+    public void FreeFall(bool toggle)
 	{
 		if(toggle)
 		{

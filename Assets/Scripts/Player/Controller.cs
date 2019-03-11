@@ -79,6 +79,8 @@ public class Controller : MonoBehaviour
 	public Dictionary<string, List<string>> Input_Dictionary;
 	string input_tag = "Controls";
 	bool is_left_side = false;
+    float t = 0.0f;
+
     #endregion
 
     #region MonoBehaviour
@@ -295,10 +297,40 @@ public class Controller : MonoBehaviour
 			air_brake_enabled = false;
 			m_Character.Airbrake_Reset();
 		}
+
+        // Lock On to something
+        if (Input.GetKey(KeyCode.L))
+        {
+            print("LOCKON!");
+
+            m_Character.m_IsLockedOn = true;
+
+            //m_CurrentCamera.SetLockOnView(true);
+            //m_Character.m_DodgeRollSpeed += 100;
+            //m_Character.AddRoll(Input.GetAxis("MouseX") * -5.0f,true);
+
+            //m_Character.m_DodgeRollSpeed -= 100;
+            t += Time.deltaTime;
+
+            m_CurrentCamera.transform.LookAt(Vector3.Lerp(m_CurrentCamera.transform.forward, Vector3.zero, Time.fixedDeltaTime * 10.0f));
+
+
+        }
+        if (Input.GetKeyUp(KeyCode.L))
+        {
+            t = 0;
+
+           // m_CurrentCamera.SetLockOnView(false);
+            m_Character.m_IsLockedOn = false;
+
+
+        }
+
+
     }
 
-	/// Checks the weapon input
-	private void CheckWeaponInput()
+        /// Checks the weapon input
+        private void CheckWeaponInput()
 	{
 		/// Machine Guns
 		if(Input.GetButton("Shoot") && turret_timer > m_TimeBetweenTurretFire)

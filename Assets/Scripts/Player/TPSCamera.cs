@@ -19,7 +19,6 @@ public class TPSCamera : BaseCamera
         // Lerp factor
         [SerializeField]
         private float       m_LerpFactor                    = 6;
-
     #endregion
 
     #region MonoBehaviour
@@ -32,21 +31,33 @@ public class TPSCamera : BaseCamera
             {
                 // Calculate local offset depending on dodge action
                 Vector3 localOffset = m_Character.transform.right * m_CharacterOffset.x + m_Character.transform.up * m_CharacterOffset.y + m_Character.transform.forward * m_CharacterOffset.z;
+                Vector3 desiredPosition;
 
                 if (m_Character.IsDodging)
                 {
                     localOffset = m_Character.transform.right * m_CharacterOffset.x + m_CharacterUpBeforeDodge * m_CharacterOffset.y + m_Character.transform.forward * m_CharacterOffset.z;
                 }
-
+                else if (m_Character.m_IsLockedOn)
+                {
+                    // Offset from player, looking at rotation (which is pointing towards target)
+                    localOffset = transform.right * m_CharacterOffset.x + transform.up * m_CharacterOffset.y + transform.forward * m_CharacterOffset.z;
+                }
+                           
                 // Update position based on offset
-                Vector3 desiredPosition = m_Character.transform.position + localOffset;
+                desiredPosition = m_Character.transform.position + localOffset;
                 transform.position = Vector3.Slerp(transform.position, desiredPosition, Time.fixedDeltaTime * m_LerpFactor);
+            }
 
-                // Follow character rotation depending on dodge action
-                if (!m_Character.IsDodging)
+
+            // Follow character rotation depending on dodge action
+            if (!m_Character.IsDodging)
+            {
+                if (!m_Character.m_IsLockedOn)
                 {
                     transform.rotation = Quaternion.Lerp(transform.rotation, m_Character.transform.rotation, Time.fixedDeltaTime * m_LerpFactor);
-                }
+                    //defaultRot = transform.rotation.eulerAngles;
+
+                }                
             }
         }
 

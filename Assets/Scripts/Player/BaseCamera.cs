@@ -21,15 +21,19 @@ public class BaseCamera : MonoBehaviour
 
         // Boost coroutine running
         protected Coroutine m_RunningBoostCoroutine         = null;
+        protected Coroutine m_RunningLockCoroutine = null;
 
-		public ParticleSystem m_BoostEffectPS;
+        public ParticleSystem m_BoostEffectPS;
+
+        public Vector3 lockon_target_pos;
+        public Vector3 defaultRot;
 
     #endregion
 
     #region Getters & Setters
 
-        // Camera component accessors
-        public Camera CameraComponent
+    // Camera component accessors
+    public Camera CameraComponent
         {
             get { return m_Camera; }
         }
@@ -71,28 +75,48 @@ public class BaseCamera : MonoBehaviour
             if (_Mode)
 			{
                 m_RunningBoostCoroutine = StartCoroutine(CR_SetBoostView(m_Camera.fieldOfView, m_FOVOnBoost));
-
-				
-
             }
             else
             {
-			//m_BoostEffectPS.Stop();
+			    //m_BoostEffectPS.Stop();
                 m_RunningBoostCoroutine = StartCoroutine(CR_SetBoostView(m_Camera.fieldOfView, m_DefaultFOV));
 
             }
         }
 
+    public void SetLockOnView(bool enabled)
+    {
+
+        // Stop previous running boost coroutine
+        if (m_RunningLockCoroutine != null)
+        {
+            StopCoroutine(m_RunningLockCoroutine);
+            
+
+        }
+        // Start boost coroutine
+        if (enabled)
+        {
+            m_RunningLockCoroutine = StartCoroutine(CR_SetLockOnView(transform.rotation.eulerAngles, lockon_target_pos));
+            
+            //m_Camera.transform.LookAt(Vector3.zero);
+      
+        }
+        else
+        {
+            //m_BoostEffectPS.Stop();
+            m_RunningLockCoroutine = StartCoroutine(CR_SetLockOnView(transform.rotation.eulerAngles, Vector3.zero));
+
+        }
+    }
+
+
     #endregion
 
     #region Private Manipulators
 
-        /// <summary>
-        /// Boost view FOV transition between 2 FOV over time
-        /// </summary>
-        /// <param name="_FromFOV">Start FOV</param>
-        /// <param name="_ToFOV">End FOV</param>
-        private IEnumerator CR_SetBoostView(float _FromFOV, float _ToFOV)
+    /// Boost view FOV transition between 2 FOV over time
+    private IEnumerator CR_SetBoostView(float _FromFOV, float _ToFOV)
         {
             float t = 0;
 
@@ -114,5 +138,27 @@ public class BaseCamera : MonoBehaviour
             }
         }
 
+    private IEnumerator CR_SetLockOnView(Vector3 initialRot, Vector3 target)
+    {
+        // Attempt at lerping camera view from player to target - WIP
+        float t = 0;
+
+        float duration = 1.0f;// Mathf.Abs(initialRot - target) / Mathf.Abs(m_FOVOnBoost - m_DefaultFOV);
+        //duration *= m_BoostFovTransitionDuration;
+
+        while (t < duration)
+        {
+            t += Time.deltaTime;
+
+            if (t > duration)
+            {
+                t = duration;
+            }
+
+           // m_Camera.transform.LookAt(Vector3.Lerp(transform.forward, target, t / duration));
+
+            yield return null;
+        }
+    }
     #endregion
 }
